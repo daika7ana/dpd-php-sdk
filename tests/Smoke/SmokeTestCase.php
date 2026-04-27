@@ -15,6 +15,10 @@ use Daika7ana\Dpd\DTOs\Common\Addressing\AddressLocation;
 use Daika7ana\Dpd\DTOs\Common\Addressing\ShipmentParcelRef;
 use Daika7ana\Dpd\DTOs\Common\Addressing\ShipmentPhoneNumber;
 use Daika7ana\Dpd\DTOs\Locations\Requests\NearestOfficesRequest;
+use Daika7ana\Dpd\DTOs\Locations\Requests\SiteSearchRequest;
+use Daika7ana\Dpd\DTOs\Locations\Requests\StreetSearchRequest;
+use Daika7ana\Dpd\DTOs\Locations\Geography\Site;
+use Daika7ana\Dpd\DTOs\Locations\Geography\Street;
 use Daika7ana\Dpd\DTOs\Payments\Requests\PayoutRequest;
 use Daika7ana\Dpd\DTOs\Pickup\Requests\PickupRequest;
 use Daika7ana\Dpd\DTOs\Pickup\Requests\PickupTermsRequest;
@@ -25,6 +29,7 @@ use Daika7ana\Dpd\DTOs\Shipments\Payloads\ShipmentContent;
 use Daika7ana\Dpd\DTOs\Shipments\Payloads\ShipmentPayment;
 use Daika7ana\Dpd\DTOs\Shipments\Payloads\ShipmentService;
 use Daika7ana\Dpd\DTOs\Shipments\Parties\ShipmentRecipient;
+use Daika7ana\Dpd\DTOs\Shipments\Requests\CancelShipmentRequest;
 use Daika7ana\Dpd\DTOs\Shipments\Requests\CreateShipmentRequest;
 use Daika7ana\Dpd\DTOs\Tracking\Models\TrackShipmentParcelRef;
 use Daika7ana\Dpd\DTOs\Tracking\Requests\TrackRequest;
@@ -34,10 +39,41 @@ use Daika7ana\Dpd\Enums\Printing\PaperSize;
 use Daika7ana\Dpd\Enums\Printing\PrintFormat;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use Throwable;
 
 abstract class SmokeTestCase extends TestCase
 {
+    private const DEFAULT_COUNTRY_ID = 642;
+
+    private const DEFAULT_SITE_SEARCH = 'Bucuresti';
+
+    private const DEFAULT_STREET_SEARCH = 'Victoriei';
+
+    private const DEFAULT_STREET_NO = '1';
+
+    private const DEFAULT_POST_CODE = '010101';
+
+    private const DEFAULT_RECIPIENT_NAME = 'Smoke Test Receiver SRL';
+
+    private const DEFAULT_RECIPIENT_CONTACT_NAME = 'Smoke Test Contact';
+
+    private const DEFAULT_RECIPIENT_PHONE = '0722123456';
+
+    private const DEFAULT_RECIPIENT_EMAIL = 'smoke@example.test';
+
     private ?Client $client = null;
+
+    private ?Site $sampleSite = null;
+
+    private ?Street $sampleStreet = null;
+
+    private ?AddressLocation $sampleAddressLocation = null;
+
+    private ?int $sampleServiceId = null;
+
+    private ?ShipmentParcelRef $selfSeededParcelRef = null;
+
+    private ?string $selfSeededShipmentId = null;
 
     protected function client(): Client
     {
@@ -64,6 +100,23 @@ abstract class SmokeTestCase extends TestCase
                 $workflow,
             ));
         }
+    }
+
+    protected function tearDown(): void
+    {
+        $shipmentId = $this->selfSeededShipmentId;
+
+        $this->selfSeededShipmentId = null;
+        $this->selfSeededParcelRef = null;
+
+        if ($shipmentId !== null) {
+            try {
+                $this->client()->shipments()->cancel(new CancelShipmentRequest($shipmentId, 'Smoke test self-seeded cleanup'));
+            } catch (Throwable) {
+            }
+        }
+
+        parent::tearDown();
     }
 
     protected function sampleNearestOfficesRequest(): NearestOfficesRequest
@@ -121,9 +174,10 @@ abstract class SmokeTestCase extends TestCase
     {
         return new CreateShipmentRequest(
             recipient: new ShipmentRecipient(
-                phone1: new ShipmentPhoneNumber($this->requireStringEnv('DPD_SMOKE_RECIPIENT_PHONE')),
-                clientName: $this->requireStringEnv('DPD_SMOKE_RECIPIENT_NAME'),
-                email: $this->env('DPD_SMOKE_RECIPIENT_EMAIL'),
+                phone1: new ShipmentPhoneNumber($this->sampleRecipientPhone()),
+                clientName: $this->sampleRecipientName(),
+                contactName: $this->sampleRecipientContactName(),
+                email: $this->env('DPD_SMOKE_RECIPIENT_EMAIL', self::DEFAULT_RECIPIENT_EMAIL),
                 privatePerson: false,
                 address: $this->sampleLocalAddress(),
             ),
@@ -164,8 +218,8 @@ abstract class SmokeTestCase extends TestCase
             autoAdjustPickupDate: true,
             pickupScope: PickupScope::ExplicitShipmentIdList,
             explicitShipmentIdList: [$shipmentId],
-            contactName: $this->env('DPD_SMOKE_PICKUP_CONTACT_NAME', $this->requireStringEnv('DPD_SMOKE_RECIPIENT_NAME')),
-            phoneNumber: new ShipmentPhoneNumber($this->requireStringEnv('DPD_SMOKE_RECIPIENT_PHONE')),
+            contactName: $this->env('DPD_SMOKE_PICKUP_CONTACT_NAME', $this->sampleRecipientName()),
+            phoneNumber: new ShipmentPhoneNumber($this->sampleRecipientPhone()),
         );
     }
 
@@ -182,28 +236,90 @@ abstract class SmokeTestCase extends TestCase
 
     protected function sampleAddressLocation(): AddressLocation
     {
-        return AddressLocation::fromArray([
-            'countryId' => $this->requireIntEnv('DPD_SMOKE_COUNTRY_ID'),
-            'siteId' => $this->requireIntEnv('DPD_SMOKE_SITE_ID'),
-            'siteName' => $this->requireStringEnv('DPD_SMOKE_SITE_NAME'),
-            'postCode' => $this->requireStringEnv('DPD_SMOKE_POST_CODE'),
-        ]);
+        if ($this->sampleAddressLocation instanceof AddressLocation) {
+            return $this->sampleAddressLocation;
+        }
+
+        $site = $this->sampleSite();
+
+        $this->sampleAddressLocation = new AddressLocation(
+            countryId: $site->countryId,
+            stateId: null,
+            siteId: $site->id,
+            siteType: null,
+            siteName: null,
+            postCode: $this->env('DPD_SMOKE_POST_CODE', $site->postCode ?? self::DEFAULT_POST_CODE),
+            x: $site->x,
+            y: $site->y,
+        );
+
+        return $this->sampleAddressLocation;
     }
 
     protected function sampleLocalAddress(): LocalShipmentAddress
     {
+        $street = $this->sampleStreet();
+
         return new LocalShipmentAddress(
             location: $this->sampleAddressLocation(),
-            streetType: $this->requireStringEnv('DPD_SMOKE_STREET_TYPE'),
-            streetName: $this->requireStringEnv('DPD_SMOKE_STREET_NAME'),
-            streetNo: $this->requireStringEnv('DPD_SMOKE_STREET_NO'),
+            streetId: $street->id,
+            streetType: $this->env('DPD_SMOKE_STREET_TYPE', $street->type->local !== '' ? $street->type->local : null),
+            streetName: $this->env('DPD_SMOKE_STREET_NAME', $street->name->local !== '' ? $street->name->local : null),
+            streetNo: $this->env('DPD_SMOKE_STREET_NO', self::DEFAULT_STREET_NO),
             blockNo: $this->env('DPD_SMOKE_BLOCK_NO'),
         );
     }
 
     protected function sampleServiceId(): int
     {
-        return $this->requireIntEnv('DPD_SMOKE_SERVICE_ID');
+        if ($this->sampleServiceId !== null) {
+            return $this->sampleServiceId;
+        }
+
+        $configuredServiceId = $this->envInt('DPD_SMOKE_SERVICE_ID');
+
+        if ($configuredServiceId !== null) {
+            $this->sampleServiceId = $configuredServiceId;
+
+            return $this->sampleServiceId;
+        }
+
+        $service = $this->client()->services()->list()->first();
+
+        if ($service === null) {
+            $this->markTestSkipped('Skipping smoke test because no DPD services are available for the configured account.');
+        }
+
+        $this->sampleServiceId = $service->id;
+
+        return $this->sampleServiceId;
+    }
+
+    protected function sampleCountryId(): int
+    {
+        return $this->sampleAddressLocation()->countryId ?? self::DEFAULT_COUNTRY_ID;
+    }
+
+    protected function sampleSiteId(): int
+    {
+        $siteId = $this->sampleAddressLocation()->siteId;
+
+        if ($siteId === null) {
+            $this->markTestSkipped('Skipping smoke test because the sample site could not be resolved.');
+        }
+
+        return $siteId;
+    }
+
+    protected function samplePostCode(): string
+    {
+        $postCode = $this->sampleAddressLocation()->postCode;
+
+        if ($postCode === null || $postCode === '') {
+            $this->markTestSkipped('Skipping smoke test because the sample postcode could not be resolved.');
+        }
+
+        return $postCode;
     }
 
     protected function sampleParcelRef(string ...$keys): ShipmentParcelRef
@@ -214,6 +330,10 @@ abstract class SmokeTestCase extends TestCase
             if ($value !== null) {
                 return new ShipmentParcelRef($value, null, null);
             }
+        }
+
+        if ($this->envBool('DPD_SMOKE_ENABLE_WRITES', false)) {
+            return $this->selfSeededParcelRef();
         }
 
         $this->markTestSkipped(sprintf(
@@ -289,10 +409,123 @@ abstract class SmokeTestCase extends TestCase
         return (int) $this->requireStringEnv($key);
     }
 
+    protected function sampleRecipientName(): string
+    {
+        return $this->env('DPD_SMOKE_RECIPIENT_NAME', self::DEFAULT_RECIPIENT_NAME) ?? self::DEFAULT_RECIPIENT_NAME;
+    }
+
+    protected function sampleRecipientPhone(): string
+    {
+        return $this->env('DPD_SMOKE_RECIPIENT_PHONE', self::DEFAULT_RECIPIENT_PHONE) ?? self::DEFAULT_RECIPIENT_PHONE;
+    }
+
+    protected function sampleRecipientContactName(): string
+    {
+        return $this->env('DPD_SMOKE_RECIPIENT_CONTACT_NAME', self::DEFAULT_RECIPIENT_CONTACT_NAME) ?? self::DEFAULT_RECIPIENT_CONTACT_NAME;
+    }
+
+    private function sampleSite(): Site
+    {
+        if ($this->sampleSite instanceof Site) {
+            return $this->sampleSite;
+        }
+
+        $configuredSiteId = $this->envInt('DPD_SMOKE_SITE_ID');
+
+        if ($configuredSiteId !== null) {
+            $configuredSite = $this->client()->locations()->getSite($configuredSiteId);
+
+            if ($configuredSite instanceof Site) {
+                $this->sampleSite = $configuredSite;
+
+                return $this->sampleSite;
+            }
+        }
+
+        $countryId = $this->envInt('DPD_SMOKE_COUNTRY_ID', self::DEFAULT_COUNTRY_ID) ?? self::DEFAULT_COUNTRY_ID;
+        $siteName = $this->env('DPD_SMOKE_SITE_NAME', self::DEFAULT_SITE_SEARCH) ?? self::DEFAULT_SITE_SEARCH;
+        $postCode = $this->env('DPD_SMOKE_POST_CODE');
+
+        $sites = $this->client()->locations()->findSites(new SiteSearchRequest(
+            countryId: $countryId,
+            name: $siteName,
+            postCode: $postCode,
+        ));
+
+        $site = $sites->first();
+
+        if (!$site instanceof Site) {
+            $this->markTestSkipped(sprintf(
+                'Skipping smoke test because a sample site could not be resolved for country %d and search term "%s".',
+                $countryId,
+                $siteName,
+            ));
+        }
+
+        $this->sampleSite = $site;
+
+        return $this->sampleSite;
+    }
+
+    private function sampleStreet(): Street
+    {
+        if ($this->sampleStreet instanceof Street) {
+            return $this->sampleStreet;
+        }
+
+        $site = $this->sampleSite();
+        $streetName = $this->env('DPD_SMOKE_STREET_NAME', self::DEFAULT_STREET_SEARCH);
+        $streetType = $this->env('DPD_SMOKE_STREET_TYPE');
+
+        $streets = $this->client()->locations()->findStreets(new StreetSearchRequest(
+            siteId: $site->id,
+            name: $streetName,
+            type: $streetType,
+        ));
+
+        $street = $streets->first();
+
+        if (!$street instanceof Street) {
+            $street = $this->client()->locations()->findStreets(new StreetSearchRequest(siteId: $site->id))->first();
+        }
+
+        if (!$street instanceof Street) {
+            $this->markTestSkipped(sprintf(
+                'Skipping smoke test because a sample street could not be resolved for site %d.',
+                $site->id,
+            ));
+        }
+
+        $this->sampleStreet = $street;
+
+        return $this->sampleStreet;
+    }
+
     private function samplePrintFormat(): PrintFormat
     {
         return strtolower($this->env('DPD_SMOKE_PRINT_FORMAT', 'pdf') ?? 'pdf') === 'zpl'
             ? PrintFormat::Zpl
             : PrintFormat::Pdf;
+    }
+
+    private function selfSeededParcelRef(): ShipmentParcelRef
+    {
+        if ($this->selfSeededParcelRef instanceof ShipmentParcelRef) {
+            return $this->selfSeededParcelRef;
+        }
+
+        $this->requireWriteAccess('tracking and printing smoke tests without configured parcel references');
+
+        $shipment = $this->client()->shipments()->create($this->sampleShipmentRequest());
+        $parcelId = $shipment->parcels->first()?->id;
+
+        if ($parcelId === null || $parcelId === '') {
+            $this->markTestSkipped('Skipping smoke test because the self-seeded shipment did not return a parcel id.');
+        }
+
+        $this->selfSeededShipmentId = $shipment->id;
+        $this->selfSeededParcelRef = new ShipmentParcelRef($parcelId, null, null);
+
+        return $this->selfSeededParcelRef;
     }
 }

@@ -13,11 +13,11 @@ final class CalculationAndValidationSmokeTest extends SmokeTestCase
         $client = $this->client();
 
         $addressResult = $client->validation()->address($this->sampleLocalAddress());
-        $phoneResult = $client->validation()->phone($this->requireStringEnv('DPD_SMOKE_RECIPIENT_PHONE'));
+        $phoneResult = $client->validation()->phone($this->sampleRecipientPhone());
         $postCodeResult = $client->validation()->postCode(new ValidatePostCodeRequest(
-            postCode: $this->requireStringEnv('DPD_SMOKE_POST_CODE'),
-            countryId: $this->requireIntEnv('DPD_SMOKE_COUNTRY_ID'),
-            siteId: $this->requireIntEnv('DPD_SMOKE_SITE_ID'),
+            postCode: $this->samplePostCode(),
+            countryId: $this->sampleCountryId(),
+            siteId: $this->sampleSiteId(),
         ));
         $shipmentResult = $client->validation()->shipment($this->sampleShipmentRequest());
 

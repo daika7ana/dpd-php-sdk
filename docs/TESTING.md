@@ -44,7 +44,9 @@ Smoke tests read the same core credentials as `ClientConfig::fromEnvironment()`:
 - `DPD_LANGUAGE`
 - `DPD_CLIENT_SYSTEM_ID`
 
-Common fixture values:
+Built-in smoke fixtures now cover the common address, recipient, and service fields automatically. By default the suite resolves a real Romanian site and street from the live API and uses realistic fake recipient data.
+
+Optional fixture overrides:
 
 - `DPD_SMOKE_COUNTRY_ID`
 - `DPD_SMOKE_SITE_ID`
@@ -56,6 +58,7 @@ Common fixture values:
 - `DPD_SMOKE_SERVICE_ID`
 - `DPD_SMOKE_RECIPIENT_NAME`
 - `DPD_SMOKE_RECIPIENT_PHONE`
+- `DPD_SMOKE_RECIPIENT_EMAIL`
 - `DPD_SMOKE_TRACK_PARCEL_ID`
 - `DPD_SMOKE_PRINT_PARCEL_ID`
 
@@ -67,7 +70,9 @@ Optional smoke controls:
 - `DPD_SMOKE_EXPECT_PAYOUTS=1` requires payout smoke to return data instead of only type-safe structure
 - `DPD_SMOKE_PRINT_FORMAT=zpl` switches print smoke from PDF to ZPL
 
-Smoke tests skip automatically when required credentials or fixture values are missing.
+When `DPD_SMOKE_ENABLE_WRITES=1` is enabled, tracking and printing smoke tests can self-seed from a newly created shipment if no parcel reference env vars are configured.
+
+Smoke tests skip automatically when required credentials are missing, when account-specific parcel references are not configured, or when the configured DPD account cannot resolve the default live fixtures.
 
 ## What Is Covered
 
