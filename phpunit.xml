@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="Tests">
+            <directory suffix="Test.php">tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
+
+    <php>
+        <env name="DPD_BASE_URL" value="https://api.dpd.ro/v1"/>
+        <env name="DPD_USERNAME" value=""/>
+        <env name="DPD_PASSWORD" value=""/>
+        <env name="DPD_LANGUAGE" value="RO"/>
+        <env name="DPD_CLIENT_SYSTEM_ID" value=""/>
+    </php>
+</phpunit>

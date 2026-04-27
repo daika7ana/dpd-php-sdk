@@ -1,0 +1,53 @@
+{
+    "name": "daika7ana/dpd-php-sdk",
+    "description": "Typed PHP SDK for the DPD Romania API.",
+    "type": "library",
+    "license": "GPL-3.0-or-later",
+    "keywords": [
+        "dpd",
+        "courier",
+        "shipping",
+        "sdk",
+        "api",
+        "psr-18"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Daika7ana\\Dpd\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Daika7ana\\Dpd\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dan-Radu Pana"
+        }
+    ],
+    "require": {
+        "php": ">=8.3",
+        "guzzlehttp/guzzle": "^7.0",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-message": "^1.0 || ^2.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.29",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.0"
+    },
+    "scripts": {
+        "pint": "@php vendor/bin/pint",
+        "stan": "@php vendor/bin/phpstan --no-progress",
+        "test": "@php vendor/bin/phpunit",
+        "test:unit": "@php vendor/bin/phpunit tests/Unit",
+        "test:smoke": "@php vendor/bin/phpunit tests/Smoke",
+        "ci": [
+            "@pint",
+            "@stan",
+            "@test:unit"
+        ]
+    }
+}
