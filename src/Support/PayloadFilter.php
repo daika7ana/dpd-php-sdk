@@ -15,6 +15,16 @@ final class PayloadFilter
      */
     public static function removeNulls(array $payload): array
     {
+        return array_filter($payload, static fn(mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
+    public static function removeNullsAndEmptyArrays(array $payload): array
+    {
         return array_filter($payload, static fn(mixed $value): bool => $value !== null && $value !== []);
     }
 }
