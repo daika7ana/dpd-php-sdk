@@ -88,18 +88,20 @@ final class ShipmentRequestDtosTest extends TestCase
             content: new ShipmentContent(contents: 'Electronics', package: 'Box', parcelsCount: 1, totalWeight: 2.5),
             payment: new ShipmentPayment(Payer::Sender),
             ref1: 'ORDER-100',
-        )->toArray();
+        );
 
-        $this->assertArrayHasKey('streetName', $payload['sender']['address']);
-        $this->assertArrayNotHasKey('addressLine1', $payload['sender']['address']);
-        $this->assertSame('Libertatii', $payload['sender']['address']['streetName']);
-        $this->assertArrayHasKey('addressLine1', $payload['recipient']['address']);
-        $this->assertArrayNotHasKey('streetName', $payload['recipient']['address']);
-        $this->assertSame('Alexanderplatz 1', $payload['recipient']['address']['addressLine1']);
-        $this->assertSame('TEST', $payload['service']['additionalServices']['obpd']['option']);
-        $this->assertSame('RON', $payload['service']['additionalServices']['cod']['currencyCode']);
-        $this->assertSame('Return signed docs', $payload['service']['additionalServices']['returns']['rod']['comment']);
-        $this->assertSame(['docs@example.test'], $payload['service']['additionalServices']['returns']['electronicReturnReceipt']['recipientEmails']);
+        $payloadArray = $payload->toArray();
+
+        $this->assertArrayHasKey('streetName', $payloadArray['sender']['address']);
+        $this->assertArrayNotHasKey('addressLine1', $payloadArray['sender']['address']);
+        $this->assertSame('Libertatii', $payloadArray['sender']['address']['streetName']);
+        $this->assertArrayHasKey('addressLine1', $payloadArray['recipient']['address']);
+        $this->assertArrayNotHasKey('streetName', $payloadArray['recipient']['address']);
+        $this->assertSame('Alexanderplatz 1', $payloadArray['recipient']['address']['addressLine1']);
+        $this->assertSame('TEST', $payloadArray['service']['additionalServices']['obpd']['option']);
+        $this->assertSame('RON', $payloadArray['service']['additionalServices']['cod']['currencyCode']);
+        $this->assertSame('Return signed docs', $payloadArray['service']['additionalServices']['returns']['rod']['comment']);
+        $this->assertSame(['docs@example.test'], $payloadArray['service']['additionalServices']['returns']['electronicReturnReceipt']['recipientEmails']);
     }
 
     public function testShipmentInformationResponseMapsOptionalNestedStructuresWithoutLeakingInvalidItems(): void
