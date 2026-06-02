@@ -2,6 +2,7 @@
 
 <div align="center">
 
+[![CI](https://github.com/daika7ana/dpd-php-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/daika7ana/dpd-php-sdk/actions/workflows/ci.yml)
 [![PHP 8.3+](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php)](https://www.php.net/)
 [![PHPUnit](https://img.shields.io/badge/PHPUnit-12.x-0A7BBB?style=flat-square)](docs/TESTING.md)
 [![PHPStan](https://img.shields.io/badge/PHPStan-2.x-6C43E0?style=flat-square)](docs/TESTING.md)
