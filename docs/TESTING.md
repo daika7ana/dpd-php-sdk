@@ -77,10 +77,21 @@ Smoke tests skip automatically when required credentials are missing, when accou
 ## What Is Covered
 
 - client bootstrapping and extension seams
-- response and exception mapping
-- shipment request and resource behavior
-- location search, lookup, nearest-office, CSV hydration, and cache-backed reference data
-- DTO edge cases such as domestic versus foreign address payloads and optional nested structures
+- response and exception mapping via `ApiResponseMapper`
+- all 10 resource classes (shipments, tracking, printing, services, locations, calculations, clients, payments, pickup, validation)
+- support utilities: `CsvHelper`, `PayloadFilter`, `JsonHelper`, `BatchingHelper`, tracking code resolvers
+- HTTP layer: `GuzzleHttpClient` exception wrapping and transport error handling
+- authentication: `Credentials`, `InMemoryCredentialsProvider`, credential payloads
+- configuration: `ClientConfig` immutability, normalization, environment bootstrapping
+- caching: `ArrayReferenceDataCache` TTL expiration, `NullReferenceDataCache` no-op behavior
+- exception hierarchy: `DpdError` classification, `DpdException`/`ApiException`/`ValidationException`/`AuthenticationException`/`TransportException` chains
+- complex DTOs: `Office` (48 properties, schedules, routing), `TrackedParcel`/`TrackedParcelOperation` (code resolution), `ExtendedPrintResponse` (base64 decode), `ShipmentRecord` (14 nested fields), `PrintDocument` (mime-type mapping)
+- request validation: `PickupRequest` time-format regex
+- shipment DTOs: `ShipmentParty`, `ShipmentContentRecord`, `SecondaryShipment`, `ShipmentDelivery`, `PrimaryShipment`, additional services (COD, return, OBPD, declared value)
+- service and calculation DTOs: `CourierService`, `AdditionalCourierServices`, `CalculationResult`
+- client DTOs: `ContractInfo`, `CodAdditionalServiceContractInfo`, `SpecialDeliveryRequirements`, `ClientRecord`
+- pickup and payment DTOs: `PickupOrder`, `Payout`, `PayoutDetail`, `ShipmentService`, `ShipmentParcel`, `ShipmentContent`, `GoodsItem`
+- collection behavior: `Collection` class with filter, map, pluck, and array access
 - live smoke workflows for services, validation, calculations, tracking, printing, shipments, pickup, and payouts when the account supports them
 
 ## Release Check
