@@ -19,10 +19,10 @@ final readonly class PickupRequest
      */
     public function __construct(
         public string $visitEndTime,
+        public array $explicitShipmentIdList = [],
         public ?DateTimeInterface $pickupDateTime = null,
         public ?bool $autoAdjustPickupDate = null,
         public ?PickupScope $pickupScope = null,
-        public array $explicitShipmentIdList = [],
         public ?string $contactName = null,
         public ?ShipmentPhoneNumber $phoneNumber = null,
     ) {
@@ -42,7 +42,7 @@ final readonly class PickupRequest
             'pickupDateTime' => $this->pickupDateTime
                 ? DateTimeImmutable::createFromInterface($this->pickupDateTime)
                     ->setTimezone(new DateTimeZone('UTC'))
-                    ->format('Y-m-d\TH:i:s\Z')
+                    ->format('Y-m-d\TH:i:sO')
                 : null,
             'autoAdjustPickupDate' => $this->autoAdjustPickupDate,
             'pickupScope' => $this->pickupScope?->value,

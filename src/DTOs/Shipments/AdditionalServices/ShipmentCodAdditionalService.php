@@ -14,13 +14,13 @@ final readonly class ShipmentCodAdditionalService
      */
     public function __construct(
         public float $amount,
+        public array $fiscalReceiptItems = [],
         public ?string $currencyCode = null,
         public ?CodProcessingType $processingType = null,
         public ?bool $payoutToThirdParty = null,
         public ?bool $payoutToLoggedClient = null,
         public ?bool $includeShippingPrice = null,
         public ?bool $cardPaymentForbidden = null,
-        public array $fiscalReceiptItems = [],
     ) {}
 
     /**
@@ -55,13 +55,13 @@ final readonly class ShipmentCodAdditionalService
 
         return new self(
             amount: (float) ($data['amount'] ?? 0.0),
+            fiscalReceiptItems: $fiscalReceiptItems,
             currencyCode: isset($data['currencyCode']) ? (string) $data['currencyCode'] : null,
             processingType: isset($data['processingType']) ? CodProcessingType::from((string) $data['processingType']) : null,
             payoutToThirdParty: isset($data['payoutToThirdParty']) ? (bool) $data['payoutToThirdParty'] : null,
             payoutToLoggedClient: isset($data['payoutToLoggedClient']) ? (bool) $data['payoutToLoggedClient'] : null,
             includeShippingPrice: isset($data['includeShippingPrice']) ? (bool) $data['includeShippingPrice'] : null,
             cardPaymentForbidden: isset($data['cardPaymentForbidden']) ? (bool) $data['cardPaymentForbidden'] : null,
-            fiscalReceiptItems: $fiscalReceiptItems,
         );
     }
 }

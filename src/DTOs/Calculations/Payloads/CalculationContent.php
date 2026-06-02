@@ -13,11 +13,11 @@ final readonly class CalculationContent
      * @param list<ShipmentParcel> $parcels
      */
     public function __construct(
+        public array $parcels = [],
         public ?int $parcelsCount = null,
         public ?float $totalWeight = null,
         public ?bool $documents = null,
         public ?bool $palletized = null,
-        public array $parcels = [],
     ) {}
 
     /**

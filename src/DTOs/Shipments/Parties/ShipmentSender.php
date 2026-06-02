@@ -11,8 +11,8 @@ use Daika7ana\Dpd\Support\PayloadFilter;
 final readonly class ShipmentSender
 {
     public function __construct(
-        public ShipmentPhoneNumber $phone1,
         public ?int $clientId = null,
+        public ?ShipmentPhoneNumber $phone1 = null,
         public ?ShipmentPhoneNumber $phone2 = null,
         public ?ShipmentPhoneNumber $phone3 = null,
         public ?string $clientName = null,
@@ -31,7 +31,7 @@ final readonly class ShipmentSender
     {
         return PayloadFilter::removeNulls([
             'clientId' => $this->clientId,
-            'phone1' => $this->phone1->toArray(),
+            'phone1' => $this->phone1?->toArray(),
             'phone2' => $this->phone2?->toArray(),
             'phone3' => $this->phone3?->toArray(),
             'clientName' => $this->clientName,

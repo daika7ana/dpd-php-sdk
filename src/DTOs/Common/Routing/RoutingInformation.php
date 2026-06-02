@@ -7,10 +7,10 @@ namespace Daika7ana\Dpd\DTOs\Common\Routing;
 final readonly class RoutingInformation
 {
     public function __construct(
-        public ?Tour $tour,
-        public ?int $officeId,
-        public ?int $hubId,
-        public ?int $priority,
+        public ?Tour $tour = null,
+        public ?int $officeId = null,
+        public ?int $hubId = null,
+        public ?int $priority = null,
     ) {}
 
     /**

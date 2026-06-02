@@ -13,9 +13,9 @@ final readonly class DpdError
         public int $code,
         public string $message,
         public string $id,
-        public ?string $context,
-        public ?string $component,
         public array $raw,
+        public ?string $context = null,
+        public ?string $component = null,
     ) {}
 
     /**
@@ -27,9 +27,9 @@ final readonly class DpdError
             code: (int) ($data['code'] ?? 0),
             message: (string) ($data['message'] ?? 'DPD API error.'),
             id: (string) ($data['id'] ?? ''),
+            raw: $data,
             context: isset($data['context']) ? (string) $data['context'] : null,
             component: isset($data['component']) ? (string) $data['component'] : null,
-            raw: $data,
         );
     }
 

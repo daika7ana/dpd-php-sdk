@@ -7,10 +7,10 @@ namespace Daika7ana\Dpd\DTOs\Common\Routing;
 final readonly class Tour
 {
     public function __construct(
-        public ?int $number,
-        public ?int $officeId,
-        public ?string $ramp,
-        public ?string $cell,
+        public ?int $number = null,
+        public ?int $officeId = null,
+        public ?string $ramp = null,
+        public ?string $cell = null,
     ) {}
 
     /**

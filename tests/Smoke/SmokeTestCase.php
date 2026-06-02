@@ -214,7 +214,7 @@ abstract class SmokeTestCase extends TestCase
     {
         return new PickupRequest(
             visitEndTime: $this->env('DPD_SMOKE_PICKUP_VISIT_END_TIME', '17:00') ?? '17:00',
-            pickupDateTime: new DateTimeImmutable('now'),
+            pickupDateTime: new DateTimeImmutable("now + 2 hours"),
             autoAdjustPickupDate: true,
             pickupScope: PickupScope::ExplicitShipmentIdList,
             explicitShipmentIdList: [$shipmentId],

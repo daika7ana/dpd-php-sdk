@@ -9,14 +9,14 @@ use Daika7ana\Dpd\Support\PayloadFilter;
 final readonly class AddressLocation
 {
     public function __construct(
-        public ?int $countryId,
-        public ?string $stateId,
-        public ?int $siteId,
-        public ?string $siteType,
-        public ?string $siteName,
-        public ?string $postCode,
-        public ?float $x,
-        public ?float $y,
+        public ?int $countryId = null,
+        public ?string $stateId = null,
+        public ?int $siteId = null,
+        public ?string $siteType = null,
+        public ?string $siteName = null,
+        public ?string $postCode = null,
+        public ?float $x = null,
+        public ?float $y = null,
     ) {}
 
     /**

@@ -14,6 +14,7 @@ final readonly class ShipmentParcelRecord
     public function __construct(
         public string $id,
         public int $seqNo,
+        public array $externalCarrierParcelNumbers = [],
         public ?int $packageUniqueNumber = null,
         public ?ShipmentParcelSize $declaredSize = null,
         public ?ShipmentParcelSize $measuredSize = null,
@@ -21,7 +22,6 @@ final readonly class ShipmentParcelRecord
         public ?float $declaredWeight = null,
         public ?float $measuredWeight = null,
         public ?float $calculationWeight = null,
-        public array $externalCarrierParcelNumbers = [],
         public ?string $baseType = null,
         public ?string $sizeName = null,
     ) {}
@@ -37,6 +37,7 @@ final readonly class ShipmentParcelRecord
         return new self(
             id: (string) ($data['id'] ?? ''),
             seqNo: (int) ($data['seqNo'] ?? 0),
+            externalCarrierParcelNumbers: $externalCarrierParcelNumbers,
             packageUniqueNumber: isset($data['packageUniqueNumber']) ? (int) $data['packageUniqueNumber'] : null,
             declaredSize: isset($data['declaredSize']) && is_array($data['declaredSize']) ? ShipmentParcelSize::fromArray($data['declaredSize']) : null,
             measuredSize: isset($data['measuredSize']) && is_array($data['measuredSize']) ? ShipmentParcelSize::fromArray($data['measuredSize']) : null,
@@ -44,7 +45,6 @@ final readonly class ShipmentParcelRecord
             declaredWeight: isset($data['declaredWeight']) ? (float) $data['declaredWeight'] : null,
             measuredWeight: isset($data['measuredWeight']) ? (float) $data['measuredWeight'] : null,
             calculationWeight: isset($data['calculationWeight']) ? (float) $data['calculationWeight'] : null,
-            externalCarrierParcelNumbers: $externalCarrierParcelNumbers,
             baseType: isset($data['baseType']) ? (string) $data['baseType'] : null,
             sizeName: isset($data['size']) ? (string) $data['size'] : null,
         );

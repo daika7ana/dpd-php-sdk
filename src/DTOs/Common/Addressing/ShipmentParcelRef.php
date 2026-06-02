@@ -9,9 +9,9 @@ use Daika7ana\Dpd\Support\PayloadFilter;
 final readonly class ShipmentParcelRef
 {
     public function __construct(
-        public ?string $id,
-        public ?string $externalCarrierParcelNumber,
-        public ?string $fullBarcode,
+        public ?string $id = null,
+        public ?string $externalCarrierParcelNumber = null,
+        public ?string $fullBarcode = null,
     ) {}
 
     /**

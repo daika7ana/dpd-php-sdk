@@ -8,8 +8,8 @@ final readonly class ShipmentPriceAmount
 {
     public function __construct(
         public float $amount,
-        public ?float $percent,
         public float $vatPercent,
+        public ?float $percent = null,
     ) {}
 
     /**
@@ -19,8 +19,8 @@ final readonly class ShipmentPriceAmount
     {
         return new self(
             amount: (float) ($data['amount'] ?? 0.0),
-            percent: isset($data['percent']) ? (float) $data['percent'] : null,
             vatPercent: (float) ($data['vatPercent'] ?? 0.0),
+            percent: isset($data['percent']) ? (float) $data['percent'] : null,
         );
     }
 }

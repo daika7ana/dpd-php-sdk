@@ -12,8 +12,8 @@ final readonly class PointOfInterest
         public BilingualText $name,
         public BilingualText $type,
         public BilingualText $address,
-        public ?float $x,
-        public ?float $y,
+        public ?float $x = null,
+        public ?float $y = null,
     ) {}
 
     /**

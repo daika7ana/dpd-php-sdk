@@ -14,11 +14,11 @@ final readonly class ShipmentContent
     public function __construct(
         public string $contents,
         public string $package,
+        public array $parcels = [],
         public ?int $parcelsCount = null,
         public ?float $totalWeight = null,
         public ?bool $documents = null,
         public ?bool $palletized = null,
-        public array $parcels = [],
         public ?bool $pendingParcels = null,
         public ?bool $exciseGoods = null,
         public ?bool $lq = null,

@@ -8,7 +8,7 @@ final readonly class OfficeResult
 {
     public function __construct(
         public Office $office,
-        public ?int $distance,
+        public ?int $distance = null,
     ) {}
 
     /**

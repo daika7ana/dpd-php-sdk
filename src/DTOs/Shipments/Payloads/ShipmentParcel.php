@@ -15,6 +15,7 @@ final readonly class ShipmentParcel
     public function __construct(
         public int $seqNo,
         public float $weight,
+        public array $goods = [],
         public ?string $id = null,
         public ?int $packageUniqueNumber = null,
         public ?ShipmentParcelSize $size = null,
@@ -22,7 +23,6 @@ final readonly class ShipmentParcel
         public ?string $ref2 = null,
         public ?ExternalCarrierParcelNumber $pickupExternalCarrierParcelNumber = null,
         public ?ExternalCarrierParcelNumber $deliveryExternalCarrierParcelNumber = null,
-        public array $goods = [],
         public ?ParcelToPrintAdditionalBarcode $printAdditionalBarcode = null,
     ) {}
 

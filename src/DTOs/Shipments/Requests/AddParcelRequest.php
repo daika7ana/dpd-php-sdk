@@ -16,8 +16,8 @@ final readonly class AddParcelRequest
     public function __construct(
         public string $shipmentId,
         public ShipmentParcel $parcel,
-        public ?float $codAmount = null,
         public array $codFiscalReceiptItems = [],
+        public ?float $codAmount = null,
         public ?float $declaredValueAmount = null,
     ) {}
 

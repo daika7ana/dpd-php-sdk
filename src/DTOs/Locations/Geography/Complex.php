@@ -11,9 +11,9 @@ final readonly class Complex
         public int $siteId,
         public BilingualText $type,
         public BilingualText $name,
-        public ?int $actualId,
-        public ?BilingualText $actualType,
-        public ?BilingualText $actualName,
+        public ?int $actualId = null,
+        public ?BilingualText $actualType = null,
+        public ?BilingualText $actualName = null,
     ) {}
 
     /**

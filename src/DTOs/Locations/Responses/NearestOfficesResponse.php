@@ -14,8 +14,8 @@ final readonly class NearestOfficesResponse
      */
     public function __construct(
         public Collection $offices,
-        public ?float $x,
-        public ?float $y,
+        public ?float $x = null,
+        public ?float $y = null,
     ) {}
 
     /**

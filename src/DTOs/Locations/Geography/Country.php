@@ -23,11 +23,11 @@ final readonly class Country
         public array $postCodeFormats,
         public bool $requireState,
         public AddressType $addressType,
-        public ?string $currencyCode,
-        public ?int $defaultOfficeId,
         public array $streetTypes,
         public array $complexTypes,
         public NomenclatureSupport $siteNomenclature,
+        public ?string $currencyCode = null,
+        public ?int $defaultOfficeId = null,
     ) {}
 
     /**
@@ -70,11 +70,11 @@ final readonly class Country
             postCodeFormats: $postCodeFormats,
             requireState: (bool) ($data['requireState'] ?? false),
             addressType: AddressType::from((int) ($data['addressType'] ?? AddressType::Local->value)),
-            currencyCode: isset($data['currencyCode']) ? (string) $data['currencyCode'] : null,
-            defaultOfficeId: isset($data['defaultOfficeId']) ? (int) $data['defaultOfficeId'] : null,
             streetTypes: $streetTypes,
             complexTypes: $complexTypes,
             siteNomenclature: NomenclatureSupport::from((int) ($data['siteNomen'] ?? NomenclatureSupport::None->value)),
+            currencyCode: isset($data['currencyCode']) ? (string) $data['currencyCode'] : null,
+            defaultOfficeId: isset($data['defaultOfficeId']) ? (int) $data['defaultOfficeId'] : null,
         );
     }
 
@@ -94,11 +94,11 @@ final readonly class Country
             postCodeFormats: CsvHelper::splitList($row['postCodeFormats'] ?? null, true),
             requireState: CsvHelper::toBool($row['requireState'] ?? null),
             addressType: AddressType::from((int) ($row['addressType'] ?? AddressType::Local->value)),
-            currencyCode: ($row['currencyCode'] ?? '') !== '' ? $row['currencyCode'] : null,
-            defaultOfficeId: ($row['defaultOfficeId'] ?? '') !== '' ? (int) $row['defaultOfficeId'] : null,
             streetTypes: $streetTypes,
             complexTypes: $complexTypes,
             siteNomenclature: NomenclatureSupport::from((int) ($row['siteNomen'] ?? NomenclatureSupport::None->value)),
+            currencyCode: ($row['currencyCode'] ?? '') !== '' ? $row['currencyCode'] : null,
+            defaultOfficeId: ($row['defaultOfficeId'] ?? '') !== '' ? (int) $row['defaultOfficeId'] : null,
         );
     }
 
