@@ -68,7 +68,7 @@ final class ClientConfigTest extends TestCase
 
         $this->assertSame(30.0, $modified->timeout);
         $this->assertSame(5.0, $modified->connectTimeout);
-        $this->assertNull($original->timeout);
+        $this->assertSame(ClientConfig::DEFAULT_TIMEOUT, $original->timeout);
     }
 
     public function testFromEnvironmentReadsEnvVars(): void
@@ -117,7 +117,21 @@ final class ClientConfigTest extends TestCase
         $this->assertSame('', $config->password);
         $this->assertSame('RO', $config->language);
         $this->assertNull($config->clientSystemId);
-        $this->assertNull($config->timeout);
-        $this->assertNull($config->connectTimeout);
+        $this->assertSame(ClientConfig::DEFAULT_TIMEOUT, $config->timeout);
+        $this->assertSame(ClientConfig::DEFAULT_CONNECT_TIMEOUT, $config->connectTimeout);
+    }
+
+    public function testFromEnvironmentIgnoresNonNumericTimeouts(): void
+    {
+        putenv('DPD_TIMEOUT=30s');
+        putenv('DPD_CONNECT_TIMEOUT=fast');
+
+        $config = ClientConfig::fromEnvironment();
+
+        $this->assertSame(ClientConfig::DEFAULT_TIMEOUT, $config->timeout);
+        $this->assertSame(ClientConfig::DEFAULT_CONNECT_TIMEOUT, $config->connectTimeout);
+
+        putenv('DPD_TIMEOUT');
+        putenv('DPD_CONNECT_TIMEOUT');
     }
 }

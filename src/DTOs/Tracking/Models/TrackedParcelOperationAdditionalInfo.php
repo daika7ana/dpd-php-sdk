@@ -26,7 +26,7 @@ final readonly class TrackedParcelOperationAdditionalInfo
             officeUrl: isset($data['officeURL']) ? (string) $data['officeURL'] : null,
             recipient: is_array($data['recipient'] ?? null) ? TrackedParcelOperationAdditionalInfoRecipient::fromArray($data['recipient']) : null,
             unsuccessfulDeliveryStickerImageUrl: isset($data['unsuccessfulDeliveryStickerImageURL']) ? (string) $data['unsuccessfulDeliveryStickerImageURL'] : null,
-            pickupOfficeType: isset($data['pickupOfficeType']) ? OfficeType::from((string) $data['pickupOfficeType']) : null,
+            pickupOfficeType: isset($data['pickupOfficeType']) ? OfficeType::tryFrom((string) $data['pickupOfficeType']) : null,
             geoPUDOId: isset($data['geoPUDOId']) ? (string) $data['geoPUDOId'] : null,
             predict: is_array($data['predict'] ?? null) ? TrackedParcelOperationPredict::fromArray($data['predict']) : null,
         );

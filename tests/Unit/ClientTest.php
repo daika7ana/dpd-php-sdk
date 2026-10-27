@@ -81,4 +81,20 @@ final class ClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('/v1/services', $httpClient->lastRequest?->getUri()->getPath());
     }
+
+    public function testSendForwardsPerRequestTimeout(): void
+    {
+        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'));
+        $factory = new HttpFactory();
+        $client = Client::create(
+            httpClient: $httpClient,
+            requestFactory: $factory,
+            streamFactory: $factory,
+            config: new ClientConfig(username: 'demo-user', password: 'demo-password'),
+        );
+
+        $client->send($client->createRequest(ApiRequest::json('POST', '/services')), 2.5);
+
+        $this->assertSame(2.5, $httpClient->lastTimeout);
+    }
 }

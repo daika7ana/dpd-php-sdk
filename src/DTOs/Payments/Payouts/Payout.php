@@ -37,8 +37,8 @@ final readonly class Payout
         return new self(
             date: (string) ($data['date'] ?? ''),
             docId: (int) ($data['docId'] ?? 0),
-            docType: PayoutDocumentType::from((string) ($data['docType'] ?? PayoutDocumentType::Cash->value)),
-            paymentType: PayoutPaymentType::from((string) ($data['paymentType'] ?? PayoutPaymentType::Cash->value)),
+            docType: PayoutDocumentType::tryFrom((string) ($data['docType'] ?? '')) ?? PayoutDocumentType::Cash,
+            paymentType: PayoutPaymentType::tryFrom((string) ($data['paymentType'] ?? '')) ?? PayoutPaymentType::Cash,
             payee: (string) ($data['payee'] ?? ''),
             currency: (string) ($data['currency'] ?? ''),
             amount: (float) ($data['amount'] ?? 0.0),

@@ -10,5 +10,8 @@ use Psr\Http\Message\ResponseInterface;
 
 interface HttpClientInterface extends ClientInterface
 {
-    public function sendRequest(RequestInterface $request): ResponseInterface;
+    /**
+     * @param float|null $timeout Per-request timeout in seconds; null uses the HTTP client default.
+     */
+    public function sendRequest(RequestInterface $request, ?float $timeout = null): ResponseInterface;
 }

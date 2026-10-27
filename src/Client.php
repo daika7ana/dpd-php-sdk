@@ -164,9 +164,9 @@ final class Client
         );
     }
 
-    public function send(RequestInterface $request): ResponseInterface
+    public function send(RequestInterface $request, ?float $timeout = null): ResponseInterface
     {
-        return $this->httpClient->sendRequest($request);
+        return $this->httpClient->sendRequest($request, $timeout);
     }
 
     /**
@@ -180,7 +180,7 @@ final class Client
     /**
      * @param list<string> $acceptedContentTypes
      */
-    public function sendBinary(ApiRequest $request, array $acceptedContentTypes = ['application/pdf', 'text/plain']): BinaryContent
+    public function sendBinary(ApiRequest $request, array $acceptedContentTypes = ['application/pdf', 'text/plain', 'application/octet-stream']): BinaryContent
     {
         return ApiResponseMapper::extractBinary(
             $this->send($this->createRequest($request)),

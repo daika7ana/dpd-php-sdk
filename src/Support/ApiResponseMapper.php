@@ -10,6 +10,7 @@ use Daika7ana\Dpd\Exceptions\ApiException;
 use Daika7ana\Dpd\Exceptions\AuthenticationException;
 use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
 use Daika7ana\Dpd\Exceptions\ValidationException;
+use JsonException;
 use Psr\Http\Message\ResponseInterface;
 
 final class ApiResponseMapper
@@ -21,24 +22,43 @@ final class ApiResponseMapper
     {
         $contentType = self::normalizeContentType($response->getHeaderLine('Content-Type'));
         $body = (string) $response->getBody();
+        $statusCode = $response->getStatusCode();
+
+        if (($statusCode === 204 || $statusCode === 205) && trim($body) === '') {
+            return [];
+        }
 
         if ($contentType !== 'application/json') {
+            if ($statusCode === 401 || $statusCode === 403) {
+                throw new AuthenticationException(
+                    message: sprintf('Authentication failed with HTTP status %d.', $statusCode),
+                    responseDetails: self::responseDetails($response),
+                );
+            }
+
             throw new UnsupportedResponseException(
-                message: sprintf('Expected JSON response, received "%s".', $contentType !== '' ? $contentType : 'unknown'),
-                responseDetails: self::responseDetails($response, $body),
+                message: sprintf('Expected JSON response, received "%s" (HTTP %d).', $contentType !== '' ? $contentType : 'unknown', $statusCode),
+                responseDetails: self::responseDetails($response),
             );
         }
 
-        $payload = JsonHelper::decode($body);
+        $payload = self::decodePayload($response, $body);
 
         if (isset($payload['error']) && is_array($payload['error']) && $payload['error'] !== []) {
-            self::throwMappedError($payload['error'], $response, $body);
+            self::throwMappedError($payload['error'], $response);
         }
 
-        if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
+        if ($statusCode === 401 || $statusCode === 403) {
+            throw new AuthenticationException(
+                message: sprintf('Authentication failed with HTTP status %d.', $statusCode),
+                responseDetails: self::responseDetails($response),
+            );
+        }
+
+        if ($statusCode < 200 || $statusCode >= 300) {
             throw new UnsupportedResponseException(
-                message: sprintf('Unexpected HTTP status %d.', $response->getStatusCode()),
-                responseDetails: self::responseDetails($response, $body, $payload),
+                message: sprintf('Unexpected HTTP status %d.', $statusCode),
+                responseDetails: self::responseDetails($response),
             );
         }
 
@@ -54,29 +74,43 @@ final class ApiResponseMapper
         $body = (string) $response->getBody();
 
         if ($contentType === 'application/json') {
-            $payload = JsonHelper::decode($body);
+            $payload = self::decodePayload($response, $body);
 
             if (isset($payload['error']) && is_array($payload['error']) && $payload['error'] !== []) {
-                self::throwMappedError($payload['error'], $response, $body);
+                self::throwMappedError($payload['error'], $response);
+            }
+
+            if ($response->getStatusCode() === 401 || $response->getStatusCode() === 403) {
+                throw new AuthenticationException(
+                    message: sprintf('Authentication failed with HTTP status %d.', $response->getStatusCode()),
+                    responseDetails: self::responseDetails($response),
+                );
             }
 
             throw new UnsupportedResponseException(
                 message: 'Expected binary response, received JSON payload.',
-                responseDetails: self::responseDetails($response, $body, $payload),
+                responseDetails: self::responseDetails($response),
             );
         }
 
         if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
+            if ($response->getStatusCode() === 401 || $response->getStatusCode() === 403) {
+                throw new AuthenticationException(
+                    message: sprintf('Authentication failed with HTTP status %d.', $response->getStatusCode()),
+                    responseDetails: self::responseDetails($response),
+                );
+            }
+
             throw new UnsupportedResponseException(
                 message: sprintf('Unexpected HTTP status %d for binary response.', $response->getStatusCode()),
-                responseDetails: self::responseDetails($response, $body),
+                responseDetails: self::responseDetails($response),
             );
         }
 
         if (!in_array($contentType, $acceptedContentTypes, true)) {
             throw new UnsupportedResponseException(
                 message: sprintf('Unsupported binary content type "%s".', $contentType !== '' ? $contentType : 'unknown'),
-                responseDetails: self::responseDetails($response, $body),
+                responseDetails: self::responseDetails($response),
             );
         }
 
@@ -96,12 +130,13 @@ final class ApiResponseMapper
     /**
      * @param array<string, mixed> $errorPayload
      */
-    private static function throwMappedError(array $errorPayload, ResponseInterface $response, string $body): never
+    private static function throwMappedError(array $errorPayload, ResponseInterface $response): never
     {
         $error = DpdError::fromArray($errorPayload);
-        $responseDetails = self::responseDetails($response, $body, ['error' => $errorPayload]);
+        $statusCode = $response->getStatusCode();
+        $responseDetails = self::responseDetails($response, $error);
 
-        if ($error->isAuthenticationRelated()) {
+        if ($statusCode === 401 || $statusCode === 403 || $error->isAuthenticationRelated()) {
             throw new AuthenticationException(
                 message: $error->message,
                 code: $error->code,
@@ -128,18 +163,34 @@ final class ApiResponseMapper
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private static function decodePayload(ResponseInterface $response, string $body): array
+    {
+        try {
+            return JsonHelper::decode($body);
+        } catch (JsonException $exception) {
+            throw new UnsupportedResponseException(
+                message: 'Response body is not valid JSON: ' . $exception->getMessage(),
+                responseDetails: self::responseDetails($response),
+                previous: $exception,
+            );
+        }
+    }
+
+    /**
+     * Keeps only non-sensitive metadata: response bodies often echo customer data.
      *
      * @return array<string, mixed>
      */
-    private static function responseDetails(ResponseInterface $response, string $body, array $payload = []): array
+    private static function responseDetails(ResponseInterface $response, ?DpdError $error = null): array
     {
-        return [
+        return array_filter([
             'statusCode' => $response->getStatusCode(),
             'contentType' => self::normalizeContentType($response->getHeaderLine('Content-Type')),
-            'body' => $body,
-            'payload' => $payload,
-        ];
+            'errorCode' => $error?->code,
+            'errorMessage' => $error?->message,
+        ], static fn(mixed $value): bool => $value !== null);
     }
 
     private static function normalizeContentType(string $contentType): string

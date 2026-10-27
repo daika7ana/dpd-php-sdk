@@ -7,6 +7,16 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      run_smoke:
+        description: Run the live DPD smoke suite
+        type: boolean
+        default: false
+      allow_writes:
+        description: Allow smoke tests that create and cancel real shipments
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -83,3 +93,37 @@ jobs:
 
       - name: Run unit tests
         run: composer test:unit
+
+  smoke:
+    name: Smoke (manual, live DPD)
+    if: ${{ inputs.run_smoke }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v4
+
+      - name: Require live DPD credentials
+        run: |
+          test -n "$DPD_USERNAME"
+          test -n "$DPD_PASSWORD"
+        env:
+          DPD_USERNAME: ${{ secrets.DPD_USERNAME }}
+          DPD_PASSWORD: ${{ secrets.DPD_PASSWORD }}
+
+      - name: Run smoke tests
+        run: composer test:smoke
+        env:
+          DPD_USERNAME: ${{ secrets.DPD_USERNAME }}
+          DPD_PASSWORD: ${{ secrets.DPD_PASSWORD }}
+          DPD_SMOKE_ENABLE_WRITES: ${{ inputs.allow_writes }}

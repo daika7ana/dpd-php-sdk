@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Unit;
 
-use Daika7ana\Dpd\Client;
-use Daika7ana\Dpd\Config\ClientConfig;
 use Daika7ana\Dpd\DTOs\Calculations\Payloads\CalculationContent;
 use Daika7ana\Dpd\DTOs\Calculations\Payloads\CalculationRecipient;
 use Daika7ana\Dpd\DTOs\Calculations\Payloads\CalculationSender;
@@ -24,8 +22,8 @@ use Daika7ana\Dpd\Enums\Services\AdditionalServiceAllowance;
 use Daika7ana\Dpd\Enums\Services\CargoType;
 use Daika7ana\Dpd\Support\JsonHelper;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
+use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use DateTimeImmutable;
-use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -82,7 +80,7 @@ final class MilestoneEightResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
         $recipient = new CalculationRecipient(addressLocation: AddressLocation::fromArray(['countryId' => 642, 'siteId' => 68134, 'siteName' => 'Bucuresti', 'postCode' => '010101']));
 
         $services = $client->services()->destination(new DestinationServicesRequest(
@@ -173,7 +171,7 @@ final class MilestoneEightResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $contactId = $client->clients()->createContact(new CreateContactRequest(
             externalContactId: 'external-1',
@@ -216,20 +214,14 @@ final class MilestoneEightResourceTest extends TestCase
         $this->assertSame('SHIP123', $payouts->first()?->details->first()?->shipmentId);
     }
 
-    private function makeClient(FakeHttpClient $httpClient): Client
+    public function testClientEndpointsRejectResponsesWithoutClientId(): void
     {
-        $factory = new HttpFactory();
+        $client = TestClientFactory::create(new FakeHttpClient(
+            static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'),
+        ));
 
-        return Client::create(
-            httpClient: $httpClient,
-            requestFactory: $factory,
-            streamFactory: $factory,
-            config: new ClientConfig(
-                username: 'demo-user',
-                password: 'demo-password',
-                language: 'EN',
-                clientSystemId: 55,
-            ),
-        );
+        $this->expectException(\Daika7ana\Dpd\Exceptions\UnsupportedResponseException::class);
+
+        $client->clients()->ownClientId();
     }
 }

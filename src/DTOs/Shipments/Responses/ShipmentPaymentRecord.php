@@ -24,9 +24,9 @@ final readonly class ShipmentPaymentRecord
     public static function fromArray(array $data): self
     {
         return new self(
-            courierServicePayer: Payer::from((string) ($data['courierServicePayer'] ?? Payer::Sender->value)),
-            declaredValuePayer: isset($data['declaredValuePayer']) ? Payer::from((string) $data['declaredValuePayer']) : null,
-            packagePayer: isset($data['packagePayer']) ? Payer::from((string) $data['packagePayer']) : null,
+            courierServicePayer: Payer::tryFrom((string) ($data['courierServicePayer'] ?? '')) ?? Payer::Sender,
+            declaredValuePayer: isset($data['declaredValuePayer']) ? Payer::tryFrom((string) $data['declaredValuePayer']) : null,
+            packagePayer: isset($data['packagePayer']) ? Payer::tryFrom((string) $data['packagePayer']) : null,
             thirdPartyClientId: isset($data['thirdPartyClientId']) ? (int) $data['thirdPartyClientId'] : null,
             discountCardId: isset($data['discountCardId']) && is_array($data['discountCardId']) ? ShipmentDiscountCardId::fromArray($data['discountCardId']) : null,
             codPayment: isset($data['codPayment']) && is_array($data['codPayment']) ? CodPayment::fromArray($data['codPayment']) : null,

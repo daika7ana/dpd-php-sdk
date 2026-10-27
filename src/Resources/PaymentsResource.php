@@ -28,7 +28,7 @@ final readonly class PaymentsResource
         if (!is_array($rawPayouts)) {
             throw new UnsupportedResponseException(
                 message: 'Expected a payouts array in the DPD response.',
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 

@@ -64,6 +64,13 @@ final class CsvHelperTest extends TestCase
         $this->assertSame('Test', $rows[0]['name']);
     }
 
+    public function testReadAssociativeRowsYieldsNothingForSingleColumnHeader(): void
+    {
+        $rows = CsvHelper::readAssociativeRows("<html>\n<body>error</body>\n</html>");
+
+        $this->assertSame([], $rows);
+    }
+
     public function testSplitListReturnsNullAsEmptyArray(): void
     {
         $this->assertSame([], CsvHelper::splitList(null));

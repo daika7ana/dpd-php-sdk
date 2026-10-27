@@ -22,6 +22,7 @@ final readonly class ShipmentSender
         public ?ShipmentAddressPayload $address = null,
         public ?int $dropoffOfficeId = null,
         public ?string $dropoffGeoPUDOId = null,
+        public ?string $objectName = null,
     ) {}
 
     /**
@@ -35,6 +36,7 @@ final readonly class ShipmentSender
             'phone2' => $this->phone2?->toArray(),
             'phone3' => $this->phone3?->toArray(),
             'clientName' => $this->clientName,
+            'objectName' => $this->objectName,
             'contactName' => $this->contactName,
             'email' => $this->email,
             'privatePerson' => $this->privatePerson,

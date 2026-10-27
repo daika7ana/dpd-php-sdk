@@ -36,7 +36,7 @@ final class ServicesResource
         if (!is_array($rawServices)) {
             throw new UnsupportedResponseException(
                 message: 'Expected a services array in the DPD response.',
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 
@@ -64,7 +64,7 @@ final class ServicesResource
         if (!is_array($rawServices)) {
             throw new UnsupportedResponseException(
                 message: 'Expected a destination services array in the DPD response.',
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 

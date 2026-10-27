@@ -6,7 +6,6 @@ namespace Daika7ana\Dpd\Tests\Unit;
 
 use Daika7ana\Dpd\Cache\ArrayReferenceDataCache;
 use Daika7ana\Dpd\Client;
-use Daika7ana\Dpd\Config\ClientConfig;
 use Daika7ana\Dpd\DTOs\Common\Support\Collection;
 use Daika7ana\Dpd\DTOs\Locations\Requests\BlockSearchRequest;
 use Daika7ana\Dpd\DTOs\Locations\Requests\ComplexSearchRequest;
@@ -24,9 +23,10 @@ use Daika7ana\Dpd\Enums\Locations\NomenclatureSupport;
 use Daika7ana\Dpd\Enums\Locations\OfficeFeature;
 use Daika7ana\Dpd\Enums\Locations\OfficeType;
 use Daika7ana\Dpd\Enums\Services\CargoType;
+use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
 use Daika7ana\Dpd\Support\JsonHelper;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
-use GuzzleHttp\Psr7\HttpFactory;
+use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -225,13 +225,7 @@ final class LocationsResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $factory = new HttpFactory();
-        $client = Client::create(
-            httpClient: $httpClient,
-            requestFactory: $factory,
-            streamFactory: $factory,
-            config: new ClientConfig(username: 'demo-user', password: 'demo-password', language: 'EN', clientSystemId: 77),
-        );
+        $client = TestClientFactory::create($httpClient);
 
         $countries = $client->locations()->findCountries(new CountrySearchRequest(name: 'Rom'));
         $countryPayload = JsonHelper::decode((string) $httpClient->lastRequest?->getBody());
@@ -348,13 +342,7 @@ final class LocationsResourceTest extends TestCase
                 ]],
             ]);
         });
-        $factory = new HttpFactory();
-        $client = Client::create(
-            httpClient: $httpClient,
-            requestFactory: $factory,
-            streamFactory: $factory,
-            config: new ClientConfig(username: 'demo-user', password: 'demo-password'),
-        );
+        $client = TestClientFactory::create($httpClient);
 
         $response = $client->locations()->findNearestOffices(new NearestOfficesRequest(
             address: new LocalShipmentAddress(
@@ -381,17 +369,73 @@ final class LocationsResourceTest extends TestCase
         $this->assertSame(OfficeType::Apt, $office->office->type);
     }
 
+    public function testEmptyCsvResponseThrowsAndIsNotCached(): void
+    {
+        $calls = 0;
+        $client = $this->makeClient(static function () use (&$calls): Response {
+            $calls++;
+
+            return self::csvResponse('');
+        }, new ArrayReferenceDataCache());
+
+        foreach ([1, 2] as $attempt) {
+            try {
+                $client->locations()->allCountries();
+                $this->fail('Expected UnsupportedResponseException on attempt ' . $attempt);
+            } catch (UnsupportedResponseException) {
+            }
+        }
+
+        $this->assertSame(2, $calls);
+    }
+
+    public function testHtmlBodyWithoutCsvColumnsThrowsAndIsNotCached(): void
+    {
+        $calls = 0;
+        $client = $this->makeClient(static function () use (&$calls): Response {
+            $calls++;
+
+            return self::csvResponse("<html>\n<body>error</body>\n</html>");
+        }, new ArrayReferenceDataCache());
+
+        foreach ([1, 2] as $attempt) {
+            try {
+                $client->locations()->allCountries();
+                $this->fail('Expected UnsupportedResponseException on attempt ' . $attempt);
+            } catch (UnsupportedResponseException) {
+            }
+        }
+
+        $this->assertSame(2, $calls);
+    }
+
+    public function testUnknownAddressTypeDefaultsToLocal(): void
+    {
+        $country = \Daika7ana\Dpd\DTOs\Locations\Geography\Country::fromArray(['id' => 1, 'addressType' => 99]);
+
+        $this->assertSame(AddressType::Local, $country->addressType);
+    }
+
+    public function testCachedReferenceDataReturnsIndependentCollections(): void
+    {
+        $client = $this->makeClient(
+            static fn(): Response => self::csvResponse(implode("\n", [
+                'id,name,nameEn,isoAlpha2,isoAlpha3,postCodeFormats,requireState,addressType,currencyCode,defaultOfficeId,streetTypes,streetTypesEn,complexTypes,complexTypesEn,siteNomen',
+                '642,Romania,Romania,RO,ROU,"NNNNNN,",0,1,RON,100,"Str.","Street","Bl.","Block",1',
+            ])),
+            new ArrayReferenceDataCache(),
+        );
+
+        $first = $client->locations()->allCountries();
+        $first[] = 'junk';
+        $second = $client->locations()->allCountries();
+
+        $this->assertCount(1, $second);
+    }
+
     private function makeClient(callable $handler, ?ArrayReferenceDataCache $cache = null): Client
     {
-        $factory = new HttpFactory();
-
-        return Client::create(
-            httpClient: new FakeHttpClient($handler),
-            requestFactory: $factory,
-            streamFactory: $factory,
-            config: new ClientConfig(username: 'demo-user', password: 'demo-password', language: 'EN'),
-            referenceDataCache: $cache,
-        );
+        return TestClientFactory::create(new FakeHttpClient($handler), $cache);
     }
 
     /**

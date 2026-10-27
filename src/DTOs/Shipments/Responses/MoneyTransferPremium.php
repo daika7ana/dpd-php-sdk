@@ -22,7 +22,7 @@ final readonly class MoneyTransferPremium
         return new self(
             amount: isset($data['amount']) ? (float) $data['amount'] : null,
             amountLocal: isset($data['amountLocal']) ? (float) $data['amountLocal'] : null,
-            payer: isset($data['payer']) ? Payer::from((string) $data['payer']) : null,
+            payer: isset($data['payer']) ? Payer::tryFrom((string) $data['payer']) : null,
         );
     }
 }

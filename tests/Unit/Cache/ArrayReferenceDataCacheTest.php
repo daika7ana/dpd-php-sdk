@@ -119,4 +119,17 @@ final class ArrayReferenceDataCacheTest extends TestCase
         $this->assertTrue($cache->has('key'));
         $this->assertSame('value', $cache->get('key'));
     }
+
+    public function testEvictsOldestEntryWhenFull(): void
+    {
+        $cache = new ArrayReferenceDataCache();
+
+        for ($index = 0; $index < 51; $index++) {
+            $cache->put('key-' . $index, $index);
+        }
+
+        $this->assertFalse($cache->has('key-0'));
+        $this->assertTrue($cache->has('key-1'));
+        $this->assertSame(50, $cache->get('key-50'));
+    }
 }

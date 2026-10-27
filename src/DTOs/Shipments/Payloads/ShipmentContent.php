@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Daika7ana\Dpd\DTOs\Shipments\Payloads;
 
 use Daika7ana\Dpd\Support\PayloadFilter;
+use InvalidArgumentException;
 
 final readonly class ShipmentContent
 {
@@ -33,7 +34,11 @@ final readonly class ShipmentContent
      */
     public function toArray(): array
     {
-        return PayloadFilter::removeNulls([
+        if ($this->parcels === [] && ($this->parcelsCount === null || $this->totalWeight === null)) {
+            throw new InvalidArgumentException('ShipmentContent needs at least one parcel, or both parcelsCount and totalWeight.');
+        }
+
+        return PayloadFilter::removeNullsAndEmptyArrays([
             'parcelsCount' => $this->parcelsCount,
             'totalWeight' => $this->totalWeight,
             'contents' => $this->contents,

@@ -20,21 +20,28 @@ final readonly class PrintDocument
         return new self(
             contents: $binaryContent->contents,
             mimeType: $binaryContent->mimeType,
-            format: match ($binaryContent->mimeType) {
-                'application/pdf' => PrintFormat::Pdf,
-                'text/plain' => PrintFormat::Zpl,
-                default => null,
-            },
+            format: self::detectFormat($binaryContent),
         );
     }
 
     public function isPdf(): bool
     {
-        return $this->mimeType === 'application/pdf';
+        return $this->format === PrintFormat::Pdf;
     }
 
     public function isZpl(): bool
     {
-        return $this->mimeType === 'text/plain';
+        return $this->format === PrintFormat::Zpl;
+    }
+
+    private static function detectFormat(BinaryContent $binaryContent): ?PrintFormat
+    {
+        return match (true) {
+            $binaryContent->mimeType === 'application/pdf',
+            $binaryContent->mimeType === 'application/octet-stream' && str_starts_with($binaryContent->contents, '%PDF-') => PrintFormat::Pdf,
+            $binaryContent->mimeType === 'text/plain',
+            $binaryContent->mimeType === 'application/octet-stream' => PrintFormat::Zpl,
+            default => null,
+        };
     }
 }

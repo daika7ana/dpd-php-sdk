@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/daika7ana/dpd-php-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/daika7ana/dpd-php-sdk/actions/workflows/ci.yml)
 [![PHP 8.3+](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php)](https://www.php.net/)
-[![PHPUnit](https://img.shields.io/badge/PHPUnit-12.x-0A7BBB?style=flat-square)](docs/TESTING.md)
+[![PHPUnit](https://img.shields.io/badge/PHPUnit-12.x%2F13.x-0A7BBB?style=flat-square)](docs/TESTING.md)
 [![PHPStan](https://img.shields.io/badge/PHPStan-2.x-6C43E0?style=flat-square)](docs/TESTING.md)
 [![Smoke Tests](https://img.shields.io/badge/Smoke%20Tests-Live%20API-orange?style=flat-square)](docs/TESTING.md)
 [![PSR Standards](https://img.shields.io/badge/PSR-7%2F17%2F18-blue?style=flat-square)](https://www.php-fig.org/)
@@ -93,8 +93,8 @@ For a full end-to-end walkthrough, continue with [docs/QUICKSTART.md](docs/QUICK
 - `password`
 - `language`
 - `clientSystemId`
-- `timeout`
-- `connectTimeout`
+- `timeout` (default `30.0` seconds; `0` disables it)
+- `connectTimeout` (default `10.0` seconds)
 
 Use `ClientConfig::fromEnvironment()` when you want configuration to come from environment variables instead of application code.
 

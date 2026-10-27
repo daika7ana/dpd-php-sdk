@@ -27,6 +27,14 @@ final class JsonHelperTest extends TestCase
         JsonHelper::decode('{invalid json}');
     }
 
+    public function testDecodeRejectsScalarJson(): void
+    {
+        $this->expectException(JsonException::class);
+        $this->expectExceptionMessage('JSON payload must be an object or an array');
+
+        JsonHelper::decode('null');
+    }
+
     public function testEncodeSerializesValue(): void
     {
         $result = JsonHelper::encode(['id' => 1, 'name' => 'Test']);

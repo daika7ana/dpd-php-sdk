@@ -51,6 +51,13 @@ final class OfficeDtoTest extends TestCase
         $this->assertInstanceOf(OfficeWorkingTimeSchedule::class, $office->workingTimeSchedule[0]);
     }
 
+    public function testUnknownOfficeTypeDefaultsToOffice(): void
+    {
+        $office = Office::fromArray(['id' => 1, 'type' => 'NEW_TYPE']);
+
+        $this->assertSame(OfficeType::Office, $office->type);
+    }
+
     public function testFromArrayMapsOptionalFields(): void
     {
         $data = [

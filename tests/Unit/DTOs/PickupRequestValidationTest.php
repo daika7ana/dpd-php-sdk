@@ -88,7 +88,7 @@ final class PickupRequestValidationTest extends TestCase
         $this->assertArrayNotHasKey('phoneNumber', $payload);
     }
 
-    public function testToArrayFormatsPickupDateTimeInUtc(): void
+    public function testToArrayKeepsPickupDateTimeOffset(): void
     {
         $pickupDate = new DateTimeImmutable('2026-04-28 15:00:00', new DateTimeZone('Europe/Bucharest'));
 
@@ -99,7 +99,7 @@ final class PickupRequestValidationTest extends TestCase
 
         $payload = $request->toArray();
 
-        // Should be converted to UTC
-        $this->assertStringContainsString('2026-04-28T', $payload['pickupDateTime']);
+        // DPD documents yyyy-MM-dd'T'HH:mm:ssZ, i.e. the offset without a colon.
+        $this->assertSame('2026-04-28T15:00:00+0300', $payload['pickupDateTime']);
     }
 }

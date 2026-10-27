@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Unit;
 
-use Daika7ana\Dpd\Client;
-use Daika7ana\Dpd\Config\ClientConfig;
 use Daika7ana\Dpd\DTOs\Calculations\Payloads\CalculationSender;
 use Daika7ana\Dpd\DTOs\Common\Addressing\AddressLocation;
 use Daika7ana\Dpd\DTOs\Common\Addressing\ShipmentPhoneNumber;
@@ -14,6 +12,7 @@ use Daika7ana\Dpd\DTOs\Pickup\Requests\PickupRequest;
 use Daika7ana\Dpd\DTOs\Pickup\Requests\PickupTermsRequest;
 use Daika7ana\Dpd\DTOs\Shipments\Addresses\LocalShipmentAddress;
 use Daika7ana\Dpd\DTOs\Shipments\Requests\CreateShipmentRequest;
+use Daika7ana\Dpd\DTOs\Shipments\AdditionalServices\ShipmentCodAdditionalService;
 use Daika7ana\Dpd\DTOs\Shipments\Payloads\ShipmentContent;
 use Daika7ana\Dpd\DTOs\Shipments\Payloads\ShipmentParcel;
 use Daika7ana\Dpd\DTOs\Shipments\Payloads\ShipmentPayment;
@@ -24,8 +23,8 @@ use Daika7ana\Dpd\Enums\Payments\Payer;
 use Daika7ana\Dpd\Enums\Pickup\PickupScope;
 use Daika7ana\Dpd\Support\JsonHelper;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
+use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use DateTimeImmutable;
-use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -55,7 +54,7 @@ final class PickupAndValidationResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $orders = $client->pickup()->order(new PickupRequest(
             visitEndTime: '11:30',
@@ -93,7 +92,7 @@ final class PickupAndValidationResourceTest extends TestCase
                 'valid' => true,
             ], JSON_THROW_ON_ERROR));
         });
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
         $address = new LocalShipmentAddress(
             location: AddressLocation::fromArray(['countryId' => 642, 'siteId' => 68134, 'siteName' => 'Bucuresti', 'postCode' => '010101']),
             streetType: 'Str.',
@@ -132,20 +131,34 @@ final class PickupAndValidationResourceTest extends TestCase
         );
     }
 
-    private function makeClient(FakeHttpClient $httpClient): Client
+    public function testPickupRequestPreservesCallerTimezoneAndRejectsImpossibleTimes(): void
     {
-        $factory = new HttpFactory();
-
-        return Client::create(
-            httpClient: $httpClient,
-            requestFactory: $factory,
-            streamFactory: $factory,
-            config: new ClientConfig(
-                username: 'demo-user',
-                password: 'demo-password',
-                language: 'EN',
-                clientSystemId: 55,
-            ),
+        $request = new PickupRequest(
+            visitEndTime: '18:00',
+            pickupDateTime: new DateTimeImmutable('2026-06-30T00:30:00+0300'),
         );
+
+        $this->assertSame('2026-06-30T00:30:00+0300', $request->toArray()['pickupDateTime']);
+        $this->assertArrayNotHasKey('explicitShipmentIdList', $request->toArray());
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        new PickupRequest('99:99');
+    }
+
+    public function testShipmentContentRequiresParcelsOrAggregateCountAndWeight(): void
+    {
+        $content = new ShipmentContent('Docs', 'Envelope', parcelsCount: 1, totalWeight: 1.0);
+        $this->assertArrayNotHasKey('parcels', $content->toArray());
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new ShipmentContent('Docs', 'Envelope'))->toArray();
+    }
+
+    public function testOptionalEmptyListsAreOmittedFromPayloads(): void
+    {
+        $this->assertArrayNotHasKey('fiscalReceiptItems', (new ShipmentCodAdditionalService(10.0))->toArray());
+        $this->assertArrayNotHasKey('goods', (new ShipmentParcel(1, 2.5))->toArray());
     }
 }

@@ -33,7 +33,7 @@ final readonly class SecondaryShipment
 
         return new self(
             id: (string) ($data['id'] ?? ''),
-            type: SecondaryShipmentType::from((string) ($data['type'] ?? SecondaryShipmentType::ReturnShipment->value)),
+            type: SecondaryShipmentType::tryFrom((string) ($data['type'] ?? '')) ?? SecondaryShipmentType::ReturnShipment,
             parcels: new Collection($parcels),
             pickupDate: isset($data['pickupDate']) ? (string) $data['pickupDate'] : null,
             serviceId: isset($data['serviceId']) ? (int) $data['serviceId'] : null,
