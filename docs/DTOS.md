@@ -6,7 +6,7 @@ The SDK is DTO-first. Request payloads, response payloads, shared value objects,
 
 - DTOs are `final readonly` where practical
 - hydration is usually done through `fromArray()` factories
-- enums are used for constrained API values
+- enums are used for constrained API values; a value DPD introduces later falls back to the field's existing default instead of throwing, while capability flags keep a conservative default
 - shared primitives are reused across resources instead of duplicating shapes
 
 ## Shared Building Blocks

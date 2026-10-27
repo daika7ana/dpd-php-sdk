@@ -31,7 +31,7 @@ final readonly class ShipmentParcel
      */
     public function toArray(): array
     {
-        return PayloadFilter::removeNulls([
+        return PayloadFilter::removeNullsAndEmptyArrays([
             'id' => $this->id,
             'seqNo' => $this->seqNo,
             'packageUniqueNumber' => $this->packageUniqueNumber,

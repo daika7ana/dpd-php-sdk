@@ -34,7 +34,7 @@ final readonly class ShipmentReturnVoucherAdditionalService
     {
         return new self(
             serviceId: (int) ($data['serviceId'] ?? 0),
-            payer: Payer::from((string) ($data['payer'] ?? Payer::Sender->value)),
+            payer: Payer::tryFrom((string) ($data['payer'] ?? '')) ?? Payer::Sender,
             validityPeriod: isset($data['validityPeriod']) ? (int) $data['validityPeriod'] : null,
         );
     }

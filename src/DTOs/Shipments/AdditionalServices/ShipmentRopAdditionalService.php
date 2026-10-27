@@ -21,7 +21,7 @@ final readonly class ShipmentRopAdditionalService
      */
     public function toArray(): array
     {
-        return PayloadFilter::removeNulls([
+        return PayloadFilter::removeNullsAndEmptyArrays([
             'pallets' => array_map(
                 static fn(ShipmentRopAdditionalServiceLine $line): array => $line->toArray(),
                 $this->pallets,

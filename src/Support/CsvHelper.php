@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Support;
 
+use Generator;
+
 final class CsvHelper
 {
     private function __construct() {}
@@ -13,47 +15,57 @@ final class CsvHelper
      */
     public static function readAssociativeRows(string $contents): array
     {
+        return iterator_to_array(self::streamRows($contents), false);
+    }
+
+    /**
+     * @return Generator<int, array<string, string>>
+     */
+    public static function streamRows(string $contents): Generator
+    {
         $stream = fopen('php://temp', 'r+');
 
         if ($stream === false) {
-            return [];
+            return;
         }
 
-        fwrite($stream, self::stripUtf8Bom($contents));
-        rewind($stream);
+        try {
+            fwrite($stream, self::stripUtf8Bom($contents));
+            rewind($stream);
 
-        $header = fgetcsv($stream, separator: ',', enclosure: '"', escape: '\\');
+            $header = fgetcsv($stream, separator: ',', enclosure: '"', escape: '\\');
 
-        if ($header === false) {
+            if ($header === false) {
+                return;
+            }
+
+            $normalizedHeader = array_map(
+                static fn(string|int|float|bool|null $value): string => trim((string) $value),
+                $header,
+            );
+
+            // DPD reference CSVs always have several columns; a one-column header means
+            // the body is not CSV (for example a proxy's HTML error page).
+            if (count($normalizedHeader) < 2) {
+                return;
+            }
+
+            while (($row = fgetcsv($stream, separator: ',', enclosure: '"', escape: '\\')) !== false) {
+                if ($row === [null] || self::rowIsEmpty($row)) {
+                    continue;
+                }
+
+                $values = [];
+
+                foreach ($normalizedHeader as $index => $column) {
+                    $values[$column] = isset($row[$index]) ? trim((string) $row[$index]) : '';
+                }
+
+                yield $values;
+            }
+        } finally {
             fclose($stream);
-
-            return [];
         }
-
-        $normalizedHeader = array_map(
-            static fn(string|int|float|bool|null $value): string => trim((string) $value),
-            $header,
-        );
-
-        $rows = [];
-
-        while (($row = fgetcsv($stream, separator: ',', enclosure: '"', escape: '\\')) !== false) {
-            if ($row === [null] || self::rowIsEmpty($row)) {
-                continue;
-            }
-
-            $values = [];
-
-            foreach ($normalizedHeader as $index => $column) {
-                $values[$column] = isset($row[$index]) ? trim((string) $row[$index]) : '';
-            }
-
-            $rows[] = $values;
-        }
-
-        fclose($stream);
-
-        return $rows;
     }
 
     /**

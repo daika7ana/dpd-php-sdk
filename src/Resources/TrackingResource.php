@@ -13,9 +13,12 @@ use Daika7ana\Dpd\DTOs\Tracking\Requests\BulkTrackingDataFilesRequest;
 use Daika7ana\Dpd\DTOs\Tracking\Requests\TrackRequest;
 use Daika7ana\Dpd\Http\ApiRequest;
 use Daika7ana\Dpd\Support\BatchingHelper;
+use InvalidArgumentException;
 
 final readonly class TrackingResource
 {
+    private const MAX_PARCELS_PER_REQUEST = 10;
+
     public function __construct(
         private Client $client,
     ) {}
@@ -27,6 +30,14 @@ final readonly class TrackingResource
     {
         $resolvedRequest = $this->resolveTrackRequest($request, $lastOperationOnly);
 
+        if (count($resolvedRequest->parcels) > self::MAX_PARCELS_PER_REQUEST) {
+            throw new InvalidArgumentException(sprintf(
+                'DPD tracks at most %d parcels per request, got %d. Use trackBatched() for larger lists.',
+                self::MAX_PARCELS_PER_REQUEST,
+                count($resolvedRequest->parcels),
+            ));
+        }
+
         return TrackResponse::fromArray(
             $this->client->sendJson(ApiRequest::json('POST', '/track', $resolvedRequest->toArray())),
         );
@@ -37,6 +48,14 @@ final readonly class TrackingResource
      */
     public function trackBatched(TrackRequest|array $request, ?bool $lastOperationOnly = null, int $batchSize = 10): TrackResponse
     {
+        if ($batchSize < 1 || $batchSize > self::MAX_PARCELS_PER_REQUEST) {
+            throw new InvalidArgumentException(sprintf(
+                'Batch size must be between 1 and %d, got %d.',
+                self::MAX_PARCELS_PER_REQUEST,
+                $batchSize,
+            ));
+        }
+
         $resolvedRequest = $this->resolveTrackRequest($request, $lastOperationOnly);
         $mergedResponse = new TrackResponse(new \Daika7ana\Dpd\DTOs\Common\Support\Collection([]));
 

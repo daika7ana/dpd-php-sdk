@@ -37,6 +37,7 @@ final class ShipmentRequestDtosTest extends TestCase
         $sender = new ShipmentSender(
             phone1: new ShipmentPhoneNumber('+40799111111'),
             clientName: 'Sender SRL',
+            objectName: 'Warehouse',
             privatePerson: false,
             address: new LocalShipmentAddress(
                 location: AddressLocation::fromArray(['countryId' => 642, 'siteId' => 12345, 'siteName' => 'Bucuresti', 'postCode' => '010101']),
@@ -100,6 +101,7 @@ final class ShipmentRequestDtosTest extends TestCase
         $this->assertSame('Alexanderplatz 1', $payloadArray['recipient']['address']['addressLine1']);
         $this->assertSame('TEST', $payloadArray['service']['additionalServices']['obpd']['option']);
         $this->assertSame('RON', $payloadArray['service']['additionalServices']['cod']['currencyCode']);
+        $this->assertSame('Warehouse', $payloadArray['sender']['objectName']);
         $this->assertSame('Return signed docs', $payloadArray['service']['additionalServices']['returns']['rod']['comment']);
         $this->assertSame(['docs@example.test'], $payloadArray['service']['additionalServices']['returns']['electronicReturnReceipt']['recipientEmails']);
     }

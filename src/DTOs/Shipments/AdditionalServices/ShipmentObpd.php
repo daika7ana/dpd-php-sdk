@@ -33,9 +33,9 @@ final readonly class ShipmentObpd
     public static function fromArray(array $data): self
     {
         return new self(
-            option: ObpdOption::from((string) ($data['option'] ?? ObpdOption::Open->value)),
+            option: ObpdOption::tryFrom((string) ($data['option'] ?? '')) ?? ObpdOption::Open,
             returnShipmentServiceId: (int) ($data['returnShipmentServiceId'] ?? 0),
-            returnShipmentPayer: Payer::from((string) ($data['returnShipmentPayer'] ?? Payer::Sender->value)),
+            returnShipmentPayer: Payer::tryFrom((string) ($data['returnShipmentPayer'] ?? '')) ?? Payer::Sender,
         );
     }
 }

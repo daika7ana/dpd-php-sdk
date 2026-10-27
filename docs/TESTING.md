@@ -74,6 +74,12 @@ When `DPD_SMOKE_ENABLE_WRITES=1` is enabled, tracking and printing smoke tests c
 
 Smoke tests skip automatically when required credentials are missing, when account-specific parcel references are not configured, or when the configured DPD account cannot resolve the default live fixtures.
 
+## CI Smoke Runs
+
+CI runs the unit suite, PHPStan and Pint on every push. Live smoke tests are manual: trigger the `CI` workflow with `run_smoke`, and only set `allow_writes` when you accept that real shipments will be created and cancelled. The job fails immediately if the `DPD_USERNAME` and `DPD_PASSWORD` repository secrets are missing, so a green run means the suite actually ran.
+
+`phpunit.xml` is gitignored and holds your local credentials; `phpunit.xml.dist` is the empty committed template.
+
 ## What Is Covered
 
 - client bootstrapping and extension seams

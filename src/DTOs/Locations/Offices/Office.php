@@ -64,7 +64,10 @@ final readonly class Office
 
         foreach ($data['cargoTypesAllowed'] ?? [] as $rawCargoType) {
             if (is_string($rawCargoType) && $rawCargoType !== '') {
-                $cargoTypesAllowed[] = CargoType::from($rawCargoType);
+                $cargoType = CargoType::tryFrom((string) $rawCargoType);
+                if ($cargoType !== null) {
+                    $cargoTypesAllowed[] = $cargoType;
+                }
             }
         }
 
@@ -75,7 +78,7 @@ final readonly class Office
                 isset($data['nameEn']) ? (string) $data['nameEn'] : null,
             ),
             siteId: (int) ($data['siteId'] ?? 0),
-            type: OfficeType::from((string) ($data['type'] ?? OfficeType::Office->value)),
+            type: OfficeType::tryFrom((string) ($data['type'] ?? '')) ?? OfficeType::Office,
             workingTimeSchedule: $workingTimeSchedule,
             palletOffice: (bool) ($data['palletOffice'] ?? false),
             cardPaymentAllowed: (bool) ($data['cardPaymentAllowed'] ?? false),

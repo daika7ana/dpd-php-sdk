@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Unit;
 
-use Daika7ana\Dpd\Client;
-use Daika7ana\Dpd\Config\ClientConfig;
 use Daika7ana\Dpd\DTOs\Common\Addressing\ShipmentParcelRef;
 use Daika7ana\Dpd\Enums\Locations\OfficeType;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
-use GuzzleHttp\Psr7\HttpFactory;
+use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -68,7 +66,7 @@ final class TrackingResourceTest extends TestCase
                 'parcels' => $responseParcels,
             ], JSON_THROW_ON_ERROR));
         });
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $references = [];
         for ($index = 1; $index <= 12; $index++) {
@@ -98,7 +96,7 @@ final class TrackingResourceTest extends TestCase
                 ['id' => 8, 'url' => 'https://bulk.example/8.json'],
             ],
         ], JSON_THROW_ON_ERROR)));
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $response = $client->tracking()->bulkDataFiles(5);
 
@@ -107,20 +105,53 @@ final class TrackingResourceTest extends TestCase
         $this->assertSame('https://bulk.example/7.json', $response->files->first()?->url);
     }
 
-    private function makeClient(FakeHttpClient $httpClient): Client
+    public function testTrackRejectsMoreThanTenParcelsWithoutCallingDpd(): void
     {
-        $factory = new HttpFactory();
+        $httpClient = new FakeHttpClient(static fn() => new Response(200));
+        $client = TestClientFactory::create($httpClient);
+        $references = [];
 
-        return Client::create(
-            httpClient: $httpClient,
-            requestFactory: $factory,
-            streamFactory: $factory,
-            config: new ClientConfig(
-                username: 'demo-user',
-                password: 'demo-password',
-                language: 'EN',
-                clientSystemId: 55,
-            ),
-        );
+        for ($index = 1; $index <= 11; $index++) {
+            $references[] = new ShipmentParcelRef('PARCEL-' . $index);
+        }
+
+        try {
+            $client->tracking()->track($references);
+            $this->fail('Expected InvalidArgumentException.');
+        } catch (\InvalidArgumentException) {
+        }
+
+        $this->assertNull($httpClient->lastRequest);
+    }
+
+    public function testTrackTreatsMissingParcelsAsEmpty(): void
+    {
+        $client = TestClientFactory::create(new FakeHttpClient(
+            static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'),
+        ));
+
+        $response = $client->tracking()->track([new ShipmentParcelRef('PARCEL-1')]);
+
+        $this->assertCount(0, $response->parcels);
+    }
+
+    public function testTrackRejectsNonArrayParcels(): void
+    {
+        $client = TestClientFactory::create(new FakeHttpClient(
+            static fn() => new Response(200, ['Content-Type' => 'application/json'], '{"parcels":"invalid"}'),
+        ));
+
+        $this->expectException(\Daika7ana\Dpd\Exceptions\UnsupportedResponseException::class);
+
+        $client->tracking()->track([new ShipmentParcelRef('PARCEL-1')]);
+    }
+
+    public function testTrackBatchedRejectsOutOfRangeBatchSize(): void
+    {
+        $client = TestClientFactory::create(new FakeHttpClient(static fn() => new Response(200)));
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $client->tracking()->trackBatched([new ShipmentParcelRef('PARCEL-1')], batchSize: 11);
     }
 }

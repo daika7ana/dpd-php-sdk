@@ -9,8 +9,10 @@
 - `password`: DPD API password
 - `language`: request language sent to DPD
 - `clientSystemId`: optional client system identifier
-- `timeout`: request timeout in seconds
-- `connectTimeout`: connection timeout in seconds
+- `timeout`: request timeout in seconds (default `30.0`; `0` disables the timeout)
+- `connectTimeout`: connection timeout in seconds (default `10.0`)
+
+Every request uses the configured timeouts. Pass a per-request override to `$client->send($request, 5.0)` when one call needs a different budget.
 
 ## Build A Client Explicitly
 
@@ -41,6 +43,8 @@ Supported environment variables:
 - `DPD_PASSWORD`
 - `DPD_LANGUAGE`
 - `DPD_CLIENT_SYSTEM_ID`
+- `DPD_TIMEOUT`
+- `DPD_CONNECT_TIMEOUT`
 
 ## Extension Points
 

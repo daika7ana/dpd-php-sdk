@@ -32,7 +32,7 @@ final readonly class ExtendedCourierService
             additionalServices: AdditionalCourierServices::fromArray(
                 is_array($data['additionalServices'] ?? null) ? $data['additionalServices'] : [],
             ),
-            cargoType: CargoType::from((string) ($data['cargoType'] ?? 'PARCEL')),
+            cargoType: CargoType::tryFrom((string) ($data['cargoType'] ?? '')) ?? CargoType::Parcel,
             requireParcelWeight: (bool) ($data['requireParcelWeight'] ?? false),
             requireParcelSize: (bool) ($data['requireParcelSize'] ?? false),
             deadline: isset($data['deadline']) ? (string) $data['deadline'] : null,

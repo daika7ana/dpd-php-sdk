@@ -22,7 +22,7 @@ use Daika7ana\Dpd\Exceptions\DpdException;
 try {
 	$shipment = $client->shipments()->create($shipmentRequest);
 } catch (ApiException $exception) {
-	$error = $exception->getDpdError();
+	$error = $exception->error;
 
 	report($error?->message ?? $exception->getMessage());
 } catch (DpdException $exception) {

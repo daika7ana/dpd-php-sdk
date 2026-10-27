@@ -28,7 +28,7 @@ final readonly class ShipmentCodAdditionalService
      */
     public function toArray(): array
     {
-        return PayloadFilter::removeNulls([
+        return PayloadFilter::removeNullsAndEmptyArrays([
             'amount' => $this->amount,
             'currencyCode' => $this->currencyCode,
             'processingType' => $this->processingType?->value,
@@ -57,7 +57,7 @@ final readonly class ShipmentCodAdditionalService
             amount: (float) ($data['amount'] ?? 0.0),
             fiscalReceiptItems: $fiscalReceiptItems,
             currencyCode: isset($data['currencyCode']) ? (string) $data['currencyCode'] : null,
-            processingType: isset($data['processingType']) ? CodProcessingType::from((string) $data['processingType']) : null,
+            processingType: isset($data['processingType']) ? CodProcessingType::tryFrom((string) $data['processingType']) : null,
             payoutToThirdParty: isset($data['payoutToThirdParty']) ? (bool) $data['payoutToThirdParty'] : null,
             payoutToLoggedClient: isset($data['payoutToLoggedClient']) ? (bool) $data['payoutToLoggedClient'] : null,
             includeShippingPrice: isset($data['includeShippingPrice']) ? (bool) $data['includeShippingPrice'] : null,

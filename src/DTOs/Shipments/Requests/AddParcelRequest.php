@@ -26,7 +26,7 @@ final readonly class AddParcelRequest
      */
     public function toArray(): array
     {
-        return PayloadFilter::removeNulls([
+        return PayloadFilter::removeNullsAndEmptyArrays([
             'shipmentId' => $this->shipmentId,
             'parcel' => $this->parcel->toArray(),
             'codAmount' => $this->codAmount,

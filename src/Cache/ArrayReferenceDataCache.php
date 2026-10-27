@@ -6,6 +6,8 @@ namespace Daika7ana\Dpd\Cache;
 
 final class ArrayReferenceDataCache implements ReferenceDataCacheInterface
 {
+    private const MAX_ENTRIES = 50;
+
     /**
      * @var array<string, array{value: mixed, expiresAt: int|null}>
      */
@@ -27,6 +29,17 @@ final class ArrayReferenceDataCache implements ReferenceDataCacheInterface
 
     public function put(string $key, mixed $value, ?int $ttlSeconds = null): void
     {
+        unset($this->items[$key]);
+        $this->pruneExpired();
+
+        if (count($this->items) >= self::MAX_ENTRIES) {
+            $oldestKey = array_key_first($this->items);
+
+            if ($oldestKey !== null) {
+                unset($this->items[$oldestKey]);
+            }
+        }
+
         $this->items[$key] = [
             'value' => $value,
             'expiresAt' => $ttlSeconds !== null ? time() + $ttlSeconds : null,
@@ -53,6 +66,17 @@ final class ArrayReferenceDataCache implements ReferenceDataCacheInterface
         $this->put($key, $value, $ttlSeconds);
 
         return $value;
+    }
+
+    private function pruneExpired(): void
+    {
+        $now = time();
+
+        foreach ($this->items as $key => $item) {
+            if ($item['expiresAt'] !== null && $item['expiresAt'] < $now) {
+                unset($this->items[$key]);
+            }
+        }
     }
 
     private function pruneIfExpired(string $key): void

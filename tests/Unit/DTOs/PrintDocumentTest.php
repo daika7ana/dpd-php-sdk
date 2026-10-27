@@ -37,6 +37,15 @@ final class PrintDocumentTest extends TestCase
         $this->assertTrue($document->isZpl());
     }
 
+    public function testFromBinaryMapsOctetStreamZplBody(): void
+    {
+        $document = PrintDocument::fromBinary(new BinaryContent('^XA^FO...^XZ', 'application/octet-stream'));
+
+        $this->assertSame(PrintFormat::Zpl, $document->format);
+        $this->assertTrue($document->isZpl());
+        $this->assertFalse($document->isPdf());
+    }
+
     public function testFromBinaryReturnsNullFormatForUnknownMimeType(): void
     {
         $binary = new BinaryContent('content', 'image/png');

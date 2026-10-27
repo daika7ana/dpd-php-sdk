@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Unit;
 
-use Daika7ana\Dpd\Client;
-use Daika7ana\Dpd\Config\ClientConfig;
 use Daika7ana\Dpd\DTOs\Common\Addressing\ShipmentParcelRef;
 use Daika7ana\Dpd\DTOs\Printing\Payloads\ParcelToPrint;
 use Daika7ana\Dpd\DTOs\Printing\Requests\PrintRequest;
@@ -19,7 +17,7 @@ use Daika7ana\Dpd\Enums\Printing\PrintFormat;
 use Daika7ana\Dpd\Exceptions\ValidationException;
 use Daika7ana\Dpd\Support\JsonHelper;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
-use GuzzleHttp\Psr7\HttpFactory;
+use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 
@@ -46,7 +44,7 @@ final class PrintingResourceTest extends TestCase
         );
 
         $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-test'));
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $document = $client->printing()->document($request);
         $payload = JsonHelper::decode((string) $httpClient->lastRequest?->getBody());
@@ -65,7 +63,7 @@ final class PrintingResourceTest extends TestCase
                 ['parcelId' => 'PARCEL123', 'fullBarcode' => '123456789012', 'exportPriority' => 1],
             ],
         ], JSON_THROW_ON_ERROR)));
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $extended = $client->printing()->extended($request);
         $this->assertSame('%PDF-extended', $extended->asDocument()->contents);
@@ -76,14 +74,14 @@ final class PrintingResourceTest extends TestCase
                 ['parcelId' => 'PARCEL123', 'fullBarcode' => '123456789012', 'exportPriority' => 2],
             ],
         ], JSON_THROW_ON_ERROR)));
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $labelInfo = $client->printing()->labelInfo([new ShipmentParcelRef('PARCEL123', null, null)]);
         $this->assertSame('/v1/print/labelInfo', $httpClient->lastRequest?->getUri()->getPath());
         $this->assertSame(2, $labelInfo->printLabelsInfo->first()?->exportPriority);
 
         $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'text/plain'], '^XA^FO50,50^FDvoucher^FS^XZ'));
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $voucher = $client->printing()->voucher(['SHIP123']);
         $this->assertTrue($voucher->isZpl());
@@ -100,7 +98,7 @@ final class PrintingResourceTest extends TestCase
                 'id' => 'err-120',
             ],
         ], JSON_THROW_ON_ERROR)));
-        $client = $this->makeClient($httpClient);
+        $client = TestClientFactory::create($httpClient);
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Invalid address.');
@@ -111,20 +109,17 @@ final class PrintingResourceTest extends TestCase
         ));
     }
 
-    private function makeClient(FakeHttpClient $httpClient): Client
+    public function testDocumentAcceptsOctetStreamPdf(): void
     {
-        $factory = new HttpFactory();
+        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/octet-stream'], '%PDF-test'));
+        $client = TestClientFactory::create($httpClient);
 
-        return Client::create(
-            httpClient: $httpClient,
-            requestFactory: $factory,
-            streamFactory: $factory,
-            config: new ClientConfig(
-                username: 'demo-user',
-                password: 'demo-password',
-                language: 'EN',
-                clientSystemId: 55,
-            ),
-        );
+        $document = $client->printing()->document(new PrintRequest(
+            paperSize: PaperSize::A4,
+            parcels: [new ParcelToPrint(new ShipmentParcelRef('PARCEL123', null, null))],
+        ));
+
+        $this->assertTrue($document->isPdf());
+        $this->assertSame('application/octet-stream', $document->mimeType);
     }
 }

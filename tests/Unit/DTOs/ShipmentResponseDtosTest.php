@@ -143,9 +143,9 @@ final class ShipmentResponseDtosTest extends TestCase
         $this->assertSame(SecondaryShipmentType::ReturnShipment, $primary->type);
     }
 
-    public function testPrimaryShipmentDefaultsTypeToReturnShipment(): void
+    public function testPrimaryShipmentDefaultsUnknownTypeToReturnShipment(): void
     {
-        $primary = PrimaryShipment::fromArray(['id' => 'PRI-002']);
+        $primary = PrimaryShipment::fromArray(['id' => 'PRI-002', 'type' => 'NEW_TYPE']);
 
         $this->assertSame('PRI-002', $primary->id);
         $this->assertSame(SecondaryShipmentType::ReturnShipment, $primary->type);

@@ -38,7 +38,7 @@ final readonly class ClientsResource
         if (!is_array($rawClients)) {
             throw new UnsupportedResponseException(
                 message: 'Expected a clients array in the DPD response.',
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 
@@ -54,7 +54,7 @@ final readonly class ClientsResource
     {
         $data = $this->client->sendJson(ApiRequest::json('POST', '/client/contact', $request->toArray()));
 
-        return (int) ($data['clientId'] ?? 0);
+        return $this->requireClientId($data);
     }
 
     public function contactByExternalId(string $externalId, ?string $secretKey = null): ?ClientRecord
@@ -70,7 +70,22 @@ final readonly class ClientsResource
     {
         $data = $this->client->sendJson(ApiRequest::json('POST', '/client', []));
 
-        return (int) ($data['clientId'] ?? 0);
+        return $this->requireClientId($data);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function requireClientId(array $data): int
+    {
+        if (!isset($data['clientId']) || !is_numeric($data['clientId'])) {
+            throw new UnsupportedResponseException(
+                message: 'Expected a numeric clientId in the DPD response.',
+                responseDetails: ['resultKeys' => array_keys($data)],
+            );
+        }
+
+        return (int) $data['clientId'];
     }
 
     public function contractInfo(): ContractInfo

@@ -6,6 +6,7 @@ namespace Daika7ana\Dpd\DTOs\Calculations\Payloads;
 
 use Daika7ana\Dpd\DTOs\Shipments\Payloads\ShipmentParcel;
 use Daika7ana\Dpd\Support\PayloadFilter;
+use InvalidArgumentException;
 
 final readonly class CalculationContent
 {
@@ -25,7 +26,11 @@ final readonly class CalculationContent
      */
     public function toArray(): array
     {
-        return PayloadFilter::removeNulls([
+        if ($this->parcels === [] && ($this->parcelsCount === null || $this->totalWeight === null)) {
+            throw new InvalidArgumentException('CalculationContent needs at least one parcel, or both parcelsCount and totalWeight.');
+        }
+
+        return PayloadFilter::removeNullsAndEmptyArrays([
             'parcelsCount' => $this->parcelsCount,
             'totalWeight' => $this->totalWeight,
             'documents' => $this->documents,

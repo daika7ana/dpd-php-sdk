@@ -115,6 +115,14 @@ final class PickupAndPaymentsDtosTest extends TestCase
         $this->assertCount(0, $payout->details);
     }
 
+    public function testPayoutDefaultsUnknownTypesToCash(): void
+    {
+        $payout = Payout::fromArray(['docType' => 'BANK', 'paymentType' => 'CARD']);
+
+        $this->assertSame(PayoutDocumentType::Cash, $payout->docType);
+        $this->assertSame(PayoutPaymentType::Cash, $payout->paymentType);
+    }
+
     public function testPayoutDetailMapsAllFields(): void
     {
         $data = [

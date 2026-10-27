@@ -11,7 +11,9 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\RequestInterface;
 use PHPUnit\Framework\TestCase;
 
 final class GuzzleHttpClientTest extends TestCase
@@ -57,19 +59,31 @@ final class GuzzleHttpClientTest extends TestCase
         }
     }
 
-    public function testConstructorAcceptsTimeoutOptions(): void
+    public function testConstructorAppliesConfiguredTimeouts(): void
     {
-        // Should not throw when valid timeout options are provided
-        $mockHandler = new MockHandler([new Response(200)]);
+        $client = new GuzzleHttpClient(timeout: 1.5, connectTimeout: 0.5);
+
+        $property = new \ReflectionProperty(GuzzleHttpClient::class, 'guzzleClient');
+        $config = $property->getValue($client)->getConfig();
+
+        $this->assertSame(1.5, $config['timeout']);
+        $this->assertSame(0.5, $config['connect_timeout']);
+    }
+
+    public function testPerRequestTimeoutIsForwardedToGuzzle(): void
+    {
+        $captured = null;
         $guzzle = new GuzzleClient([
-            'handler' => HandlerStack::create($mockHandler),
-            'timeout' => 30.0,
-            'connect_timeout' => 5.0,
+            'handler' => static function (RequestInterface $request, array $options) use (&$captured) {
+                $captured = $options;
+
+                return Create::promiseFor(new Response(200));
+            },
         ]);
         $client = new GuzzleHttpClient($guzzle);
 
-        $response = $client->sendRequest(new Request('GET', 'https://api.dpd.ro/v1/test'));
+        $client->sendRequest(new Request('GET', 'https://api.dpd.ro/v1/test'), 2.5);
 
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(2.5, $captured['timeout'] ?? null);
     }
 }

@@ -267,7 +267,7 @@ final class LocationsResource
         if (!is_array($entity)) {
             throw new UnsupportedResponseException(
                 message: sprintf('Expected a %s object in the DPD response.', $resultKey),
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 
@@ -290,7 +290,7 @@ final class LocationsResource
         if (!is_array($entities)) {
             throw new UnsupportedResponseException(
                 message: sprintf('Expected a %s array in the DPD response.', $resultKey),
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 
@@ -322,21 +322,30 @@ final class LocationsResource
         ?int $ttlSeconds = null,
         array $pathParameters = [],
     ): Collection {
-        /** @var Collection<int, TEntity> */
-        return $this->client->rememberReferenceData(
+        /** @var list<TEntity> $items */
+        $items = $this->client->rememberReferenceData(
             $cacheKey,
-            function () use ($path, $mapper, $pathParameters): Collection {
+            function () use ($path, $mapper, $pathParameters): array {
                 $csv = $this->client->sendCsv(ApiRequest::csv('POST', $path, [], $pathParameters));
-                $rows = CsvHelper::readAssociativeRows($csv->asString());
                 $items = [];
 
-                foreach ($rows as $row) {
+                foreach (CsvHelper::streamRows($csv->asString()) as $row) {
                     $items[] = $mapper($row);
                 }
 
-                return new Collection($items);
+                if ($items === []) {
+                    throw new UnsupportedResponseException(
+                        message: 'The DPD CSV endpoint returned no rows.',
+                        responseDetails: ['contentType' => $csv->mimeType],
+                    );
+                }
+
+                return $items;
             },
             $ttlSeconds,
         );
+
+        // Cache a plain array: a stored Collection would be shared and mutable across calls.
+        return new Collection($items);
     }
 }

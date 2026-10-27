@@ -9,7 +9,6 @@ use Daika7ana\Dpd\Enums\Pickup\PickupScope;
 use Daika7ana\Dpd\Support\PayloadFilter;
 use DateTimeImmutable;
 use DateTimeInterface;
-use DateTimeZone;
 use InvalidArgumentException;
 
 final readonly class PickupRequest
@@ -26,7 +25,7 @@ final readonly class PickupRequest
         public ?string $contactName = null,
         public ?ShipmentPhoneNumber $phoneNumber = null,
     ) {
-        if (!preg_match('/^\d{1,2}:\d{2}$/', $visitEndTime)) {
+        if (!preg_match('/^(?:[01]?\d|2[0-3]):[0-5]\d$/', $visitEndTime)) {
             throw new InvalidArgumentException(
                 sprintf('Invalid visitEndTime format "%s". Expected "HH:mm" (e.g., "9:30", "11:35").', $visitEndTime),
             );
@@ -38,11 +37,9 @@ final readonly class PickupRequest
      */
     public function toArray(): array
     {
-        return PayloadFilter::removeNulls([
+        return PayloadFilter::removeNullsAndEmptyArrays([
             'pickupDateTime' => $this->pickupDateTime
-                ? DateTimeImmutable::createFromInterface($this->pickupDateTime)
-                    ->setTimezone(new DateTimeZone('UTC'))
-                    ->format('Y-m-d\TH:i:sO')
+                ? DateTimeImmutable::createFromInterface($this->pickupDateTime)->format('Y-m-d\TH:i:sO')
                 : null,
             'autoAdjustPickupDate' => $this->autoAdjustPickupDate,
             'pickupScope' => $this->pickupScope?->value,

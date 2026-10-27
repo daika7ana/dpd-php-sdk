@@ -87,7 +87,7 @@ Printing can return binary document content on success and JSON errors on failur
 - `tracking()->trackBatched(TrackRequest|array<TrackShipmentParcelRef|ShipmentParcelRef> $request, ?bool $lastOperationOnly = null, int $batchSize = 10)`
 - `tracking()->bulkDataFiles(BulkTrackingDataFilesRequest|int $lastProcessedFileId)`
 
-Use `track()` for raw API parity and `trackBatched()` when the caller wants chunking for more than 10 parcels.
+`track()` throws `InvalidArgumentException` above 10 parcels; use `trackBatched()` for longer lists (its batch size must stay between 1 and 10).
 
 ## Pickup
 

@@ -20,7 +20,7 @@ final readonly class PrimaryShipment
     {
         return new self(
             id: (string) ($data['id'] ?? ''),
-            type: SecondaryShipmentType::from((string) ($data['type'] ?? SecondaryShipmentType::ReturnShipment->value)),
+            type: SecondaryShipmentType::tryFrom((string) ($data['type'] ?? '')) ?? SecondaryShipmentType::ReturnShipment,
         );
     }
 }

@@ -28,7 +28,7 @@ final readonly class CalculationsResource
         if (!is_array($rawCalculations)) {
             throw new UnsupportedResponseException(
                 message: 'Expected a calculations array in the DPD response.',
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 

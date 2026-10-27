@@ -18,7 +18,7 @@ final readonly class AdditionalCourierService
     public static function fromArray(array $data): self
     {
         return new self(
-            allowance: AdditionalServiceAllowance::from((string) ($data['allowance'] ?? 'FORBIDDEN')),
+            allowance: AdditionalServiceAllowance::tryFrom((string) ($data['allowance'] ?? '')) ?? AdditionalServiceAllowance::Forbidden,
         );
     }
 }

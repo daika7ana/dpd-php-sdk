@@ -29,7 +29,7 @@ final readonly class PickupResource
         if (!is_array($rawOrders)) {
             throw new UnsupportedResponseException(
                 message: 'Expected an orders array in the DPD response.',
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 
@@ -52,7 +52,7 @@ final readonly class PickupResource
         if (!is_array($rawCutoffs)) {
             throw new UnsupportedResponseException(
                 message: 'Expected a cutoffs array in the DPD response.',
-                responseDetails: ['payload' => $data],
+                responseDetails: ['resultKeys' => array_keys($data)],
             );
         }
 

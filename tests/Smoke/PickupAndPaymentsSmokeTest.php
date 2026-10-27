@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Smoke;
 
+use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\Dpd\DTOs\Shipments\Requests\CancelShipmentRequest;
+
 final class PickupAndPaymentsSmokeTest extends SmokeTestCase
 {
     public function testCanFetchPickupTermsFromLiveApi(): void
@@ -23,7 +26,7 @@ final class PickupAndPaymentsSmokeTest extends SmokeTestCase
             return;
         }
 
-        $this->assertGreaterThanOrEqual(0, $payouts->count());
+        $this->assertInstanceOf(Collection::class, $payouts);
     }
 
     public function testCanOrderPickupForConfiguredShipmentWhenWritesAreEnabled(): void
@@ -32,14 +35,22 @@ final class PickupAndPaymentsSmokeTest extends SmokeTestCase
 
         $client = $this->client();
         $shipmentId = $this->env('DPD_SMOKE_PICKUP_SHIPMENT_ID');
+        $createdShipmentId = null;
 
         if ($shipmentId === null) {
-            $shipmentId = $client->shipments()->create($this->sampleShipmentRequest())->id;
+            $createdShipmentId = $client->shipments()->create($this->sampleShipmentRequest())->id;
+            $shipmentId = $createdShipmentId;
         }
 
-        $orders = $client->pickup()->order($this->samplePickupRequest($shipmentId));
+        try {
+            $orders = $client->pickup()->order($this->samplePickupRequest($shipmentId));
 
-        $this->assertGreaterThan(0, $orders->count());
-        $this->assertSame($shipmentId, $orders->first()?->shipmentIds->first());
+            $this->assertGreaterThan(0, $orders->count());
+            $this->assertSame($shipmentId, $orders->first()?->shipmentIds->first());
+        } finally {
+            if ($createdShipmentId !== null) {
+                $client->shipments()->cancel(new CancelShipmentRequest($createdShipmentId, 'Smoke test cleanup'));
+            }
+        }
     }
 }

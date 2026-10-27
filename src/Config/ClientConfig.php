@@ -8,6 +8,10 @@ final class ClientConfig
 {
     public const BASE_URL_PRODUCTION = 'https://api.dpd.ro/v1';
 
+    public const DEFAULT_TIMEOUT = 30.0;
+
+    public const DEFAULT_CONNECT_TIMEOUT = 10.0;
+
     public readonly string $baseUrl;
 
     public readonly string $username;
@@ -18,9 +22,9 @@ final class ClientConfig
 
     public readonly ?int $clientSystemId;
 
-    public readonly ?float $timeout;
+    public readonly float $timeout;
 
-    public readonly ?float $connectTimeout;
+    public readonly float $connectTimeout;
 
     public function __construct(
         string $baseUrl = self::BASE_URL_PRODUCTION,
@@ -28,16 +32,16 @@ final class ClientConfig
         string $password = '',
         string $language = 'RO',
         ?int $clientSystemId = null,
-        ?float $timeout = null,
-        ?float $connectTimeout = null,
+        ?float $timeout = self::DEFAULT_TIMEOUT,
+        ?float $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT,
     ) {
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->username = $username;
         $this->password = $password;
         $this->language = strtoupper($language);
         $this->clientSystemId = $clientSystemId;
-        $this->timeout = $timeout;
-        $this->connectTimeout = $connectTimeout;
+        $this->timeout = $timeout ?? self::DEFAULT_TIMEOUT;
+        $this->connectTimeout = $connectTimeout ?? self::DEFAULT_CONNECT_TIMEOUT;
     }
 
     public function withBaseUrl(string $baseUrl): self
@@ -92,7 +96,7 @@ final class ClientConfig
         );
     }
 
-    public function withTimeouts(?float $timeout, ?float $connectTimeout = null): self
+    public function withTimeouts(?float $timeout = null, ?float $connectTimeout = null): self
     {
         return new self(
             baseUrl: $this->baseUrl,
@@ -100,8 +104,8 @@ final class ClientConfig
             password: $this->password,
             language: $this->language,
             clientSystemId: $this->clientSystemId,
-            timeout: $timeout,
-            connectTimeout: $connectTimeout,
+            timeout: $timeout ?? $this->timeout,
+            connectTimeout: $connectTimeout ?? $this->connectTimeout,
         );
     }
 
@@ -129,7 +133,7 @@ final class ClientConfig
 
     private static function parseNullableFloat(false|string|null $value): ?float
     {
-        if ($value === null || $value === false || $value === '') {
+        if ($value === null || $value === false || $value === '' || !is_numeric($value)) {
             return null;
         }
 
