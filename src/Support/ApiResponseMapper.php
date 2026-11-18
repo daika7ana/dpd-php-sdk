@@ -18,7 +18,7 @@ final class ApiResponseMapper
     /**
      * @return array<string, mixed>
      */
-    public static function decodeJson(ResponseInterface $response): array
+    public static function decodeJson(ResponseInterface $response, bool $throwOnError = true): array
     {
         $contentType = self::normalizeContentType($response->getHeaderLine('Content-Type'));
         $body = (string) $response->getBody();
@@ -36,6 +36,13 @@ final class ApiResponseMapper
                 );
             }
 
+            if ($statusCode < 200 || $statusCode >= 300) {
+                throw new ApiException(
+                    message: sprintf('DPD API returned HTTP %d (%s).', $statusCode, $contentType !== '' ? $contentType : 'unknown content type'),
+                    responseDetails: self::responseDetails($response),
+                );
+            }
+
             throw new UnsupportedResponseException(
                 message: sprintf('Expected JSON response, received "%s" (HTTP %d).', $contentType !== '' ? $contentType : 'unknown', $statusCode),
                 responseDetails: self::responseDetails($response),
@@ -45,7 +52,9 @@ final class ApiResponseMapper
         $payload = self::decodePayload($response, $body);
 
         if (isset($payload['error']) && is_array($payload['error']) && $payload['error'] !== []) {
-            self::throwMappedError($payload['error'], $response);
+            if ($throwOnError || $statusCode < 200 || $statusCode >= 300) {
+                self::throwMappedError($payload['error'], $response);
+            }
         }
 
         if ($statusCode === 401 || $statusCode === 403) {
@@ -101,8 +110,8 @@ final class ApiResponseMapper
                 );
             }
 
-            throw new UnsupportedResponseException(
-                message: sprintf('Unexpected HTTP status %d for binary response.', $response->getStatusCode()),
+            throw new ApiException(
+                message: sprintf('DPD API returned HTTP %d for binary response.', $response->getStatusCode()),
                 responseDetails: self::responseDetails($response),
             );
         }

@@ -18,7 +18,7 @@ final readonly class CalculationsResource
     ) {}
 
     /**
-     * @return Collection<int, Collection<int, CalculationResult>>
+     * @return Collection<int, CalculationResult>
      */
     public function calculate(CalculationRequest $request): Collection
     {
@@ -32,25 +32,14 @@ final readonly class CalculationsResource
             );
         }
 
-        $calculationGroups = [];
+        $results = [];
 
-        foreach ($rawCalculations as $rawGroup) {
-            if (!is_array($rawGroup)) {
-                continue;
+        foreach ($rawCalculations as $rawResult) {
+            if (is_array($rawResult)) {
+                $results[] = CalculationResult::fromArray($rawResult);
             }
-
-            $rawRows = array_key_exists('serviceId', $rawGroup)
-                ? [$rawGroup]
-                : array_values(array_filter($rawGroup, static fn(mixed $row): bool => is_array($row)));
-
-            $rows = array_map(
-                static fn(array $row): CalculationResult => CalculationResult::fromArray($row),
-                $rawRows,
-            );
-
-            $calculationGroups[] = new Collection($rows);
         }
 
-        return new Collection($calculationGroups);
+        return new Collection($results);
     }
 }

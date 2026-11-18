@@ -61,7 +61,7 @@ Validation and calculation are the safest pre-flight calls when an account is ne
 ```php
 $addressValidation = $client->validation()->address($localAddress);
 $shipmentValidation = $client->validation()->shipment($shipmentRequest);
-$calculationGroups = $client->calculations()->calculate($calculationRequest);
+$calculations = $client->calculations()->calculate($calculationRequest);
 ```
 
 ## Low-Level Helpers

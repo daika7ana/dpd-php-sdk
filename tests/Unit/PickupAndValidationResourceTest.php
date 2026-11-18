@@ -112,6 +112,29 @@ final class PickupAndValidationResourceTest extends TestCase
         $this->assertSame('Receiver SRL', $payloads['/v1/validation/shipment']['recipient']['clientName']);
     }
 
+    public function testInvalidValidationResponseReturnsValidFalseWithError(): void
+    {
+        $client = TestClientFactory::create(new FakeHttpClient(
+            static fn(): Response => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'valid' => false,
+                'error' => ['code' => 120, 'message' => 'Street not found.', 'id' => 'err-120'],
+            ], JSON_THROW_ON_ERROR)),
+        ));
+
+        $result = $client->validation()->postCode(new ValidatePostCodeRequest('010101', 642));
+
+        $this->assertFalse($result->valid);
+        $this->assertSame(120, $result->error?->code);
+        $this->assertSame('Street not found.', $result->error?->message);
+    }
+
+    public function testPostCodeValidationRequiresCountryOrSite(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        new ValidatePostCodeRequest('010101');
+    }
+
     private function makeCreateShipmentRequest(LocalShipmentAddress $address): CreateShipmentRequest
     {
         return new CreateShipmentRequest(

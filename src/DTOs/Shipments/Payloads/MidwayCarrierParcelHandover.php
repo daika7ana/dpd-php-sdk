@@ -24,7 +24,7 @@ final readonly class MidwayCarrierParcelHandover
         return PayloadFilter::removeNulls([
             'id' => $this->id,
             'countryId' => $this->countryId,
-            'dateTime' => $this->dateTime->format('Y-m-d\\TH:i:sP'),
+            'dateTime' => $this->dateTime->format('Y-m-d\\TH:i:sO'),
             'siteName' => $this->siteName,
         ]);
     }

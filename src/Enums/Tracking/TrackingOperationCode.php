@@ -21,6 +21,7 @@ enum TrackingOperationCode: int
     case ProcessedForDestruction = 114;
     case Redirected = 115;
     case Forwarded = 116;
+    case RefusalToSend = 120;
     case StoppedBySender = 121;
     case RefusedByRecipient = 123;
     case DeliveredBackToSender = 124;
@@ -32,6 +33,7 @@ enum TrackingOperationCode: int
     case ClarifyShipmentDelivery = 136;
     case HandoverForContentsCheckTest = 144;
     case ShipmentDataReceived = 148;
+    case RoutedToAnotherDpdLocation = 152;
     case UnsuccessfulShipmentPickup = 164;
     case DeliveryCapacityReached = 169;
     case Predict = 175;
@@ -60,6 +62,7 @@ enum TrackingOperationCode: int
             self::ProcessedForDestruction => 'Processed for Destruction',
             self::Redirected => 'Redirected',
             self::Forwarded => 'Forwarded',
+            self::RefusalToSend => 'Refusal to send',
             self::StoppedBySender => 'Stopped by Sender',
             self::RefusedByRecipient => 'Refused by recipient',
             self::DeliveredBackToSender => 'Delivered Back to Sender',
@@ -71,6 +74,7 @@ enum TrackingOperationCode: int
             self::ClarifyShipmentDelivery => 'Clarify shipment delivery',
             self::HandoverForContentsCheckTest => 'Handover for contents check/test',
             self::ShipmentDataReceived => 'Shipment data received',
+            self::RoutedToAnotherDpdLocation => 'Routed to another DPD Location',
             self::UnsuccessfulShipmentPickup => 'Unsuccessful shipment pickup',
             self::DeliveryCapacityReached => 'Delivery capacity reached',
             self::Predict => 'Predict',

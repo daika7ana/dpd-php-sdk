@@ -254,6 +254,7 @@ final class ShipmentsResourceTest extends TestCase
         $handoverPayload = JsonHelper::decode((string) $handoverHttpClient->lastRequest?->getBody());
         $this->assertSame('/v1/shipment/handover', $handoverHttpClient->lastRequest?->getUri()->getPath());
         $this->assertSame('PARCEL123', $handoverPayload['parcels'][0]['id']);
+        $this->assertSame('2026-04-27T09:00:00+0300', $handoverPayload['parcels'][0]['dateTime']);
 
         $midwayHttpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
         $midwayClient = TestClientFactory::create($midwayHttpClient);
@@ -263,6 +264,7 @@ final class ShipmentsResourceTest extends TestCase
         $midwayPayload = JsonHelper::decode((string) $midwayHttpClient->lastRequest?->getBody());
         $this->assertSame('/v1/shipment/handover-to-midway-carrier', $midwayHttpClient->lastRequest?->getUri()->getPath());
         $this->assertSame(642, $midwayPayload['parcels'][0]['countryId']);
+        $this->assertSame('2026-04-27T10:00:00+0300', $midwayPayload['parcels'][0]['dateTime']);
     }
 
 

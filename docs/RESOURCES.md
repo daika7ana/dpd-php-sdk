@@ -30,7 +30,7 @@ Search endpoints:
 - `locations()->findComplexes(ComplexSearchRequest $request)`
 - `locations()->findBlocks(BlockSearchRequest $request)`
 - `locations()->findPointsOfInterest(PointOfInterestSearchRequest $request)`
-- `locations()->findOffices(OfficeSearchRequest $request)`
+- `locations()->findOffices(OfficeSearchRequest $request)` — `officeType` and `officeFeatures` filters are supported.
 - `locations()->findNearestOffices(NearestOfficesRequest $request)`
 
 Bulk CSV reference data:
@@ -101,9 +101,11 @@ Printing can return binary document content on success and JSON errors on failur
 - `validation()->phone(ValidatePhoneRequest|string $request, ?string $ext = null)`
 - `validation()->shipment(ValidateShipmentRequest|CreateShipmentRequest $request)`
 
+Validation calls return `ValidationResult` with a `valid` flag; when DPD rejects the data, `valid` is `false` and the API `error` is exposed on the result instead of throwing. `ValidatePostCodeRequest` requires a `countryId` or `siteId`.
+
 ## Calculations, Clients, And Payments
 
-- `calculations()->calculate(CalculationRequest $request)`
+- `calculations()->calculate(CalculationRequest $request)` — returns a flat `Collection<int, CalculationResult>`.
 - `clients()->get(int $clientId)`
 - `clients()->contractClients()`
 - `clients()->createContact(CreateContactRequest $request)`

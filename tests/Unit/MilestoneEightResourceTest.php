@@ -54,25 +54,23 @@ final class MilestoneEightResourceTest extends TestCase
                 '/v1/calculate' => new Response(200, ['Content-Type' => 'application/json'], json_encode([
                     'calculations' => [
                         [
-                            [
-                                'serviceId' => 2505,
-                                'pickupDate' => '2026-04-28',
-                                'deliveryDeadline' => '2026-04-29T18:00:00+03:00',
-                                'additionalServices' => ['cod' => ['amount' => 50.0]],
-                                'price' => [
-                                    'amount' => 10.0,
-                                    'vat' => 1.9,
-                                    'total' => 11.9,
-                                    'currency' => 'RON',
-                                    'details' => ['NET' => ['amount' => 10.0, 'vatPercent' => 0.19]],
-                                    'amountLocal' => 10.0,
-                                    'vatLocal' => 1.9,
-                                    'totalLocal' => 11.9,
-                                    'currencyLocal' => 'RON',
-                                    'detailsLocal' => ['NET' => ['amount' => 10.0, 'vatPercent' => 0.19]],
-                                    'currencyExchangeRateUnit' => 1,
-                                    'currencyExchangeRate' => 1.0,
-                                ],
+                            'serviceId' => 2505,
+                            'pickupDate' => '2026-04-28',
+                            'deliveryDeadline' => '2026-04-29T18:00:00+03:00',
+                            'additionalServices' => ['cod' => ['amount' => 50.0]],
+                            'price' => [
+                                'amount' => 10.0,
+                                'vat' => 1.9,
+                                'total' => 11.9,
+                                'currency' => 'RON',
+                                'details' => ['NET' => ['amount' => 10.0, 'vatPercent' => 0.19]],
+                                'amountLocal' => 10.0,
+                                'vatLocal' => 1.9,
+                                'totalLocal' => 11.9,
+                                'currencyLocal' => 'RON',
+                                'detailsLocal' => ['NET' => ['amount' => 10.0, 'vatPercent' => 0.19]],
+                                'currencyExchangeRateUnit' => 1,
+                                'currencyExchangeRate' => 1.0,
                             ],
                         ],
                     ],
@@ -99,8 +97,8 @@ final class MilestoneEightResourceTest extends TestCase
         $this->assertSame(CargoType::Parcel, $services->first()?->cargoType);
         $this->assertSame(AdditionalServiceAllowance::Allowed, $services->first()?->additionalServices->cod?->allowance);
         $this->assertSame([2505], $payloads['/v1/calculate']['service']['serviceIds']);
-        $this->assertSame(2505, $calculations->first()?->first()?->serviceId);
-        $this->assertSame('RON', $calculations->first()?->first()?->price?->currency);
+        $this->assertSame(2505, $calculations->first()?->serviceId);
+        $this->assertSame('RON', $calculations->first()?->price?->currency);
     }
 
     public function testClientsAndPaymentsMapTypedResponses(): void

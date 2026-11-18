@@ -236,7 +236,13 @@ final class LocationsResourceTest extends TestCase
         $complexes = $client->locations()->findComplexes(new ComplexSearchRequest(siteId: 1, type: 'Bl.'));
         $blocks = $client->locations()->findBlocks(new BlockSearchRequest(siteId: 1, name: 'B'));
         $pois = $client->locations()->findPointsOfInterest(new PointOfInterestSearchRequest(siteId: 1, name: 'Term'));
-        $offices = $client->locations()->findOffices(new OfficeSearchRequest(countryId: -1, name: 'Locker', limit: 1));
+        $offices = $client->locations()->findOffices(new OfficeSearchRequest(
+            countryId: -1,
+            name: 'Locker',
+            limit: 1,
+            officeType: [OfficeType::Apt],
+            officeFeatures: [OfficeFeature::CardPayment],
+        ));
         $officePayload = JsonHelper::decode((string) $httpClient->lastRequest?->getBody());
 
         $this->assertSame('Rom', $countryPayload['name']);
@@ -249,6 +255,8 @@ final class LocationsResourceTest extends TestCase
         $this->assertSame('Airport', $pois->first()?->type->english);
         $this->assertSame(-1, $officePayload['countryId']);
         $this->assertSame(1, $officePayload['limit']);
+        $this->assertSame(['APT'], $officePayload['officeType']);
+        $this->assertSame(['CARD_PAYMENT'], $officePayload['officeFeatures']);
         $this->assertSame(OfficeType::Apt, $offices->first()?->type);
     }
 

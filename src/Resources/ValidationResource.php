@@ -27,14 +27,14 @@ final readonly class ValidationResource
             : new ValidateAddressRequest($request);
 
         return ValidationResult::fromArray(
-            $this->client->sendJson(ApiRequest::json('POST', '/validation/address', $resolvedRequest->toArray())),
+            $this->client->sendJson(ApiRequest::json('POST', '/validation/address', $resolvedRequest->toArray()), throwOnError: false),
         );
     }
 
     public function postCode(ValidatePostCodeRequest $request): ValidationResult
     {
         return ValidationResult::fromArray(
-            $this->client->sendJson(ApiRequest::json('POST', '/validation/postcode', $request->toArray())),
+            $this->client->sendJson(ApiRequest::json('POST', '/validation/postcode', $request->toArray()), throwOnError: false),
         );
     }
 
@@ -45,7 +45,7 @@ final readonly class ValidationResource
             : new ValidatePhoneRequest($request, $ext);
 
         return ValidationResult::fromArray(
-            $this->client->sendJson(ApiRequest::json('POST', '/validation/phone', $resolvedRequest->toArray())),
+            $this->client->sendJson(ApiRequest::json('POST', '/validation/phone', $resolvedRequest->toArray()), throwOnError: false),
         );
     }
 
@@ -56,7 +56,7 @@ final readonly class ValidationResource
             : new ValidateShipmentRequest($request);
 
         return ValidationResult::fromArray(
-            $this->client->sendJson(ApiRequest::json('POST', '/validation/shipment', $resolvedRequest->toArray())),
+            $this->client->sendJson(ApiRequest::json('POST', '/validation/shipment', $resolvedRequest->toArray()), throwOnError: false),
         );
     }
 }

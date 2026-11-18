@@ -89,10 +89,10 @@ For international destinations, switch to `ForeignShipmentAddress` instead of ov
 
 ```php
 $shipmentValidation = $client->validation()->shipment($shipmentRequest);
-$calculationGroups = $client->calculations()->calculate($calculationRequest);
+$calculations = $client->calculations()->calculate($calculationRequest);
 ```
 
-Those two calls are the safest pre-flight checks when address quality or pricing rules are still being validated.
+Those two calls are the safest pre-flight checks when address quality or pricing rules are still being validated. `calculate()` returns a flat `Collection` of `CalculationResult` objects, and an invalid validation result comes back as `valid: false` with the API error instead of throwing.
 
 ## 5. Print Or Track
 

@@ -172,9 +172,9 @@ final class Client
     /**
      * @return array<string, mixed>
      */
-    public function sendJson(ApiRequest $request): array
+    public function sendJson(ApiRequest $request, bool $throwOnError = true): array
     {
-        return ApiResponseMapper::decodeJson($this->send($this->createRequest($request)));
+        return ApiResponseMapper::decodeJson($this->send($this->createRequest($request)), $throwOnError);
     }
 
     /**

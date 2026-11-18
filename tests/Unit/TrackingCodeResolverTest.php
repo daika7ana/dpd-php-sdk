@@ -28,6 +28,17 @@ final class TrackingCodeResolverTest extends TestCase
         $this->assertSame('Unknown tracking operation code', $resolved->description);
     }
 
+    public function testTrackingOperationResolverMapsPreviouslyMissingCodes(): void
+    {
+        $refusal = TrackingOperationCodeResolver::resolve(120);
+        $routed = TrackingOperationCodeResolver::resolve(152);
+
+        $this->assertSame(TrackingOperationCode::RefusalToSend, $refusal->knownCode);
+        $this->assertSame('Refusal to send', $refusal->description);
+        $this->assertSame(TrackingOperationCode::RoutedToAnotherDpdLocation, $routed->knownCode);
+        $this->assertSame('Routed to another DPD Location', $routed->description);
+    }
+
     public function testTrackingExceptionResolverReturnsMappedOperations(): void
     {
         $resolved = TrackingExceptionCodeResolver::resolve(1007);

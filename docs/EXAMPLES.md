@@ -77,7 +77,7 @@ $validation = $client->validation()->shipment($shipmentRequest);
 Run calculation before creation when pricing needs to be confirmed separately:
 
 ```php
-$calculationGroups = $client->calculations()->calculate($calculationRequest);
+$calculations = $client->calculations()->calculate($calculationRequest);
 ```
 
 ## 4. Create The Shipment

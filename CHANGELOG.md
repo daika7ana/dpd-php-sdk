@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-19
+
+### Added
+
+- `OfficeSearchRequest::$officeType` and `$officeFeatures` filters for `/location/office`.
+- `ValidationResult::$error`, exposing the API error when validation returns `valid: false`.
+- Tracking operation codes `120` (Refusal to send) and `152` (Routed to another DPD Location).
+
+### Changed
+
+- `CalculationsResource::calculate()` returns a flat `Collection<int, CalculationResult>` matching the live `/calculate` response instead of list-of-lists.
+- `ValidatePostCodeRequest` throws `InvalidArgumentException` when neither `countryId` nor `siteId` is given.
+- `Client::sendJson()` accepts `$throwOnError`; validation endpoints use it so invalid input is returned, not thrown.
+
+### Fixed
+
+- Shipment and midway-carrier handover datetimes use the `+0200` offset format the API requires (`Y-m-d\TH:i:sO`); `+02:00` was rejected with HTTP 400.
+- Non-JSON 4xx and 5xx responses map to `ApiException` instead of `UnsupportedResponseException`.
+
 ## [1.1.0] - 2026-10-27
 
 ### Added

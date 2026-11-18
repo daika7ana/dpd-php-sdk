@@ -32,6 +32,6 @@ final class CalculationAndValidationSmokeTest extends SmokeTestCase
         $calculations = $this->client()->calculations()->calculate($this->sampleCalculationRequest());
 
         $this->assertGreaterThan(0, $calculations->count());
-        $this->assertGreaterThan(0, $calculations->first()?->count() ?? 0);
+        $this->assertNotNull($calculations->first()?->serviceId);
     }
 }

@@ -21,7 +21,7 @@ final readonly class ParcelHandover
     {
         return [
             ...$this->parcel->toArray(),
-            'dateTime' => $this->dateTime->format('Y-m-d\\TH:i:sP'),
+            'dateTime' => $this->dateTime->format('Y-m-d\\TH:i:sO'),
         ];
     }
 }

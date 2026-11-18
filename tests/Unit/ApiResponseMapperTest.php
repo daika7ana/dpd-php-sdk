@@ -115,6 +115,28 @@ final class ApiResponseMapperTest extends TestCase
         $this->assertSame([], ApiResponseMapper::decodeJson(new Response(204)));
     }
 
+    public function testNonJsonClientErrorMapsToApiException(): void
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('HTTP 400');
+
+        ApiResponseMapper::decodeJson(new Response(400, ['Content-Type' => 'text/plain'], 'Cannot deserialize value'));
+    }
+
+    public function testDecodeJsonCanReturnErrorPayloadWithoutThrowing(): void
+    {
+        $payload = ApiResponseMapper::decodeJson(
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'valid' => false,
+                'error' => ['code' => 120, 'message' => 'Invalid street.', 'id' => 'err-120'],
+            ], JSON_THROW_ON_ERROR)),
+            throwOnError: false,
+        );
+
+        $this->assertFalse($payload['valid']);
+        $this->assertSame(120, $payload['error']['code']);
+    }
+
     public function testResponseDetailsDoNotKeepTheRawBody(): void
     {
         try {
