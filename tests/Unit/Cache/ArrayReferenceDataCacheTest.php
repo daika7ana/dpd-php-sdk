@@ -94,18 +94,13 @@ final class ArrayReferenceDataCacheTest extends TestCase
     {
         $cache = new ArrayReferenceDataCache();
 
-        // Put with 1 second TTL
-        $cache->put('key', 'value', 1);
+        // Wall-clock independent: one live entry and one already-expired entry.
+        $cache->put('live', 'value', 3600);
+        $cache->put('expired', 'value', -1);
 
-        // Should exist immediately
-        $this->assertTrue($cache->has('key'));
-
-        // Wait for expiration — use 3s to avoid edge cases with time() rounding
-        sleep(3);
-
-        // Should be expired
-        $this->assertFalse($cache->has('key'));
-        $this->assertNull($cache->get('key'));
+        $this->assertTrue($cache->has('live'));
+        $this->assertFalse($cache->has('expired'));
+        $this->assertNull($cache->get('expired'));
     }
 
     public function testNoTtlMeansPersistentEntry(): void
