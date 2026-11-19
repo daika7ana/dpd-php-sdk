@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Smoke;
 
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Shipments\Requests\CancelShipmentRequest;
 
 final class PickupAndPaymentsSmokeTest extends SmokeTestCase

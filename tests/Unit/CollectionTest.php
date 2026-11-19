@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Unit;
 
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\Dpd\DTOs\Shipments\Responses\FindParcelsByReferenceResponse;
+use Daika7ana\SimpleCollections\Collection;
 use PHPUnit\Framework\TestCase;
 
 final class CollectionTest extends TestCase
@@ -20,6 +21,7 @@ final class CollectionTest extends TestCase
         $this->assertSame('Bulgaria', $collection->last()['name']);
         $this->assertTrue($collection->has('ro'));
         $this->assertSame(642, $collection->pluck('id')->first());
+        $this->assertSame(['ro' => 'Romania', 'bg' => 'Bulgaria'], $collection->pluck('name')->all());
         $this->assertSame(['ro', 'bg'], $collection->keys()->all());
         $this->assertSame(['Romania', 'Bulgaria'], $collection->pluck('name')->values()->all());
         $this->assertSame('Romania', $collection['ro']['name']);
@@ -34,5 +36,12 @@ final class CollectionTest extends TestCase
             ->values();
 
         $this->assertSame([20, 40], $mapped->all());
+    }
+
+    public function testCollectionMembersSerializeAsTheirUnderlyingArray(): void
+    {
+        $response = FindParcelsByReferenceResponse::fromArray(['barcodes' => ['A', 'B']]);
+
+        $this->assertSame('{"barcodes":["A","B"]}', json_encode($response, JSON_THROW_ON_ERROR));
     }
 }

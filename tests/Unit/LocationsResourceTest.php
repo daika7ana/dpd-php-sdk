@@ -6,7 +6,7 @@ namespace Daika7ana\Dpd\Tests\Unit;
 
 use Daika7ana\Dpd\Cache\ArrayReferenceDataCache;
 use Daika7ana\Dpd\Client;
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Locations\Requests\BlockSearchRequest;
 use Daika7ana\Dpd\DTOs\Locations\Requests\ComplexSearchRequest;
 use Daika7ana\Dpd\DTOs\Locations\Requests\CountrySearchRequest;

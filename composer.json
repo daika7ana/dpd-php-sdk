@@ -28,6 +28,7 @@
     ],
     "require": {
         "php": ">=8.3",
+        "daika7ana/simple-collections": "^1.0",
         "guzzlehttp/guzzle": "^7.0 || ^8.0",
         "guzzlehttp/psr7": "^2.0 || ^3.0",
         "psr/http-client": "^1.0",

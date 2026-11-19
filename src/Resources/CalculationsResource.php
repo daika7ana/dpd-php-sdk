@@ -7,7 +7,7 @@ namespace Daika7ana\Dpd\Resources;
 use Daika7ana\Dpd\Client;
 use Daika7ana\Dpd\DTOs\Calculations\Results\CalculationResult;
 use Daika7ana\Dpd\DTOs\Calculations\Requests\CalculationRequest;
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
 use Daika7ana\Dpd\Http\ApiRequest;
 

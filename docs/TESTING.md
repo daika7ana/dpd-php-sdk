@@ -97,7 +97,7 @@ CI runs the unit suite, PHPStan and Pint on every push. Live smoke tests are man
 - service and calculation DTOs: `CourierService`, `AdditionalCourierServices`, `CalculationResult`
 - client DTOs: `ContractInfo`, `CodAdditionalServiceContractInfo`, `SpecialDeliveryRequirements`, `ClientRecord`
 - pickup and payment DTOs: `PickupOrder`, `Payout`, `PayoutDetail`, `ShipmentService`, `ShipmentParcel`, `ShipmentContent`, `GoodsItem`
-- collection behavior: `Collection` class with filter, map, pluck, and array access
+- collection behavior: `Daika7ana\SimpleCollections\Collection` with filter, map, pluck, and array access
 - live smoke workflows for services, validation, calculations, tracking, printing, shipments, pickup, and payouts when the account supports them
 
 ## Release Check

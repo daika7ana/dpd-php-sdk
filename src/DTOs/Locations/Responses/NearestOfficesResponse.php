@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\DTOs\Locations\Responses;
 
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Locations\Offices\OfficeResult;
 
 final readonly class NearestOfficesResponse

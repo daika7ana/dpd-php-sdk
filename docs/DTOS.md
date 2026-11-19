@@ -13,6 +13,8 @@ The SDK is DTO-first. Request payloads, response payloads, shared value objects,
 
 Common DTOs cover addresses, locations, phone numbers, parcel references, parcel sizes, money values, label metadata, routing data, bank accounts, and tracking resolver payloads.
 
+Collections are `Daika7ana\SimpleCollections\Collection` instances from [`daika7ana/simple-collections`](https://packagist.org/packages/daika7ana/simple-collections), not a package-local type. Fields whose value is a raw list or map stay plain arrays (for example `ShipmentPrice::$details`, `TrackedParcel::$externalCarrierParcelNumbersDetails`).
+
 That shared layer keeps services, shipments, locations, printing, and tracking aligned on the same value objects.
 
 ## Shipment DTOs

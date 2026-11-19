@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\DTOs\Printing\Responses;
 
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Common\Documents\LabelInfo;
 use Daika7ana\Dpd\DTOs\Printing\Documents\PrintDocument;
 use Daika7ana\Dpd\Enums\Printing\PrintFormat;

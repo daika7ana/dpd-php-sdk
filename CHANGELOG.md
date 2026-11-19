@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-19
+
+### Changed
+
+- **Breaking:** collections are now `Daika7ana\SimpleCollections\Collection`, pulled in automatically as a runtime dependency ([`daika7ana/simple-collections`](https://packagist.org/packages/daika7ana/simple-collections) `^1.0`), replacing the deleted in-tree helper. Update imports:
+
+  ```diff
+  - use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+  + use Daika7ana\SimpleCollections\Collection;
+  ```
+
+  Method names, key-preserving `pluck()`, `ArrayAccess` and iteration for int/string offsets are unchanged. One signature detail: `pluck()`'s first parameter is now `$value` (was `$valueKey`), so named-argument calls must be updated.
+- Collections returned inside DTOs are mutable: the package adds `push()`, `put()`, `forget()`, and other mutators. `final readonly` DTOs no longer make their collection members immutable, so clone the collection before modifying it when you reuse a response object.
+- **Breaking:** collection members now encode like their underlying PHP array. The package `Collection` implements `JsonSerializable` and returns its items from `jsonSerialize()`, so `json_encode()` on a DTO no longer emits `{}` for those members: list-keyed collections become JSON arrays, string-keyed collections (for example after `keyBy()`) become JSON objects, and an empty collection becomes `[]`. Update snapshots that asserted `{}`.
+
+### Removed
+
+- **Breaking:** Removed `Daika7ana\Dpd\DTOs\Common\Support\Collection`; subclassing or type-hinting it now fails — use `Daika7ana\SimpleCollections\Collection`.
+
 ## [2.0.0] - 2026-11-19
 
 ### Added

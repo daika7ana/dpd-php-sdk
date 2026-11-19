@@ -8,7 +8,7 @@ use Daika7ana\Dpd\Client;
 use Daika7ana\Dpd\DTOs\Clients\Records\ClientRecord;
 use Daika7ana\Dpd\DTOs\Clients\Contracts\ContractInfo;
 use Daika7ana\Dpd\DTOs\Clients\Requests\CreateContactRequest;
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
 use Daika7ana\Dpd\Http\ApiRequest;
 use Daika7ana\Dpd\Support\PayloadFilter;

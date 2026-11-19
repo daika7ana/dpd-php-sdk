@@ -57,7 +57,7 @@ final readonly class TrackingResource
         }
 
         $resolvedRequest = $this->resolveTrackRequest($request, $lastOperationOnly);
-        $mergedResponse = new TrackResponse(new \Daika7ana\Dpd\DTOs\Common\Support\Collection([]));
+        $mergedResponse = new TrackResponse(new \Daika7ana\SimpleCollections\Collection([]));
 
         foreach (BatchingHelper::chunk($resolvedRequest->parcels, $batchSize) as $batch) {
             $batchResponse = $this->track(new TrackRequest($batch, $resolvedRequest->lastOperationOnly));

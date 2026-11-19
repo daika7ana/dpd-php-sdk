@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Daika7ana\Dpd\Resources;
 
 use Daika7ana\Dpd\Client;
-use Daika7ana\Dpd\DTOs\Common\Support\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Payments\Payouts\Payout;
 use Daika7ana\Dpd\DTOs\Payments\Requests\PayoutRequest;
 use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
