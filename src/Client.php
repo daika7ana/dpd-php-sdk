@@ -15,6 +15,7 @@ use Daika7ana\Dpd\DTOs\Common\Documents\BinaryContent;
 use Daika7ana\Dpd\Http\ApiRequest;
 use Daika7ana\Dpd\Http\GuzzleHttpClient;
 use Daika7ana\Dpd\Http\HttpClientInterface;
+use Daika7ana\Dpd\Http\Psr18HttpClientAdapter;
 use Daika7ana\Dpd\Resources\CalculationsResource;
 use Daika7ana\Dpd\Resources\ClientsResource;
 use Daika7ana\Dpd\Resources\LocationsResource;
@@ -29,6 +30,7 @@ use Daika7ana\Dpd\Support\ApiResponseMapper;
 use Daika7ana\Dpd\Support\JsonHelper;
 use GuzzleHttp\Psr7\HttpFactory;
 use LogicException;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -36,6 +38,8 @@ use Psr\Http\Message\StreamFactoryInterface;
 
 final class Client
 {
+    private HttpClientInterface $httpClient;
+
     private ClientConfig $config;
 
     private CredentialsProviderInterface $credentialsProvider;
@@ -63,7 +67,7 @@ final class Client
     private ?PaymentsResource $paymentsResource = null;
 
     public function __construct(
-        private HttpClientInterface $httpClient,
+        ClientInterface $httpClient,
         private RequestFactoryInterface $requestFactory,
         private StreamFactoryInterface $streamFactory,
         ?ClientConfig $config = null,
@@ -71,12 +75,20 @@ final class Client
         ?ReferenceDataCacheInterface $referenceDataCache = null,
     ) {
         $this->config = $config ?? ClientConfig::fromEnvironment();
+
+        if ($this->config->timeout !== null && !$httpClient instanceof HttpClientInterface) {
+            throw new \InvalidArgumentException('ClientConfig::timeout cannot be applied to a foreign PSR-18 client; configure the timeout on that client or leave it null.');
+        }
+
+        $this->httpClient = $httpClient instanceof HttpClientInterface
+            ? $httpClient
+            : new Psr18HttpClientAdapter($httpClient);
         $this->credentialsProvider = $credentialsProvider ?? InMemoryCredentialsProvider::fromConfig($this->config);
         $this->referenceDataCache = $referenceDataCache ?? new NullReferenceDataCache();
     }
 
     public static function create(
-        ?HttpClientInterface $httpClient = null,
+        ?ClientInterface $httpClient = null,
         ?RequestFactoryInterface $requestFactory = null,
         ?StreamFactoryInterface $streamFactory = null,
         ?ClientConfig $config = null,
@@ -85,10 +97,7 @@ final class Client
     ): self {
         $config ??= ClientConfig::fromEnvironment();
 
-        $httpClient ??= new GuzzleHttpClient(
-            timeout: $config->timeout,
-            connectTimeout: $config->connectTimeout,
-        );
+        $httpClient ??= new GuzzleHttpClient();
 
         if ($requestFactory === null || $streamFactory === null) {
             $psr17Factory = new HttpFactory();
@@ -166,7 +175,7 @@ final class Client
 
     public function send(RequestInterface $request, ?float $timeout = null): ResponseInterface
     {
-        return $this->httpClient->sendRequest($request, $timeout);
+        return $this->httpClient->sendRequest($request, $timeout ?? $this->config->timeout);
     }
 
     /**

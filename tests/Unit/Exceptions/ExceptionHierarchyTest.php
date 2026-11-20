@@ -68,6 +68,13 @@ final class ExceptionHierarchyTest extends TestCase
         $this->assertInstanceOf(DpdException::class, $exception);
     }
 
+    public function testTransportExceptionImplementsPsrClientException(): void
+    {
+        $exception = new TransportException('test');
+
+        $this->assertInstanceOf(\Psr\Http\Client\ClientExceptionInterface::class, $exception);
+    }
+
     public function testUnsupportedResponseExceptionExtendsDpdException(): void
     {
         $exception = new UnsupportedResponseException('test');

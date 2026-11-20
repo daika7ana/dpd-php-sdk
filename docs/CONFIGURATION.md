@@ -9,10 +9,11 @@
 - `password`: DPD API password
 - `language`: request language sent to DPD
 - `clientSystemId`: optional client system identifier
-- `timeout`: request timeout in seconds (default `30.0`; `0` disables the timeout)
-- `connectTimeout`: connection timeout in seconds (default `10.0`)
+- `timeout`: optional request timeout in seconds; `null` by default
 
-Every request uses the configured timeouts. Pass a per-request override to `$client->send($request, 5.0)` when one call needs a different budget.
+`ClientConfig::timeout` is `null` by default. Precedence: the per-call argument → `ClientConfig::timeout` → the transport's own default (`GuzzleHttpClient` uses 30 s to respond and 10 s to connect unless you pass `timeout:`/`connectTimeout:`; an injected `GuzzleClient` keeps its own configuration). A bare PSR-18 client keeps its own timeout and cannot receive the per-call argument — passing one throws `InvalidArgumentException`; combining a bare client with a non-null `ClientConfig::timeout` also throws.
+
+Connect timeout now lives on the transport: `new GuzzleHttpClient(timeout: 30.0, connectTimeout: 5.0)`.
 
 ## Build A Client Explicitly
 
@@ -27,7 +28,6 @@ $client = Client::create(
         language: 'EN',
         clientSystemId: 123,
         timeout: 10.0,
-        connectTimeout: 5.0,
     ),
 );
 ```
@@ -44,7 +44,6 @@ Supported environment variables:
 - `DPD_LANGUAGE`
 - `DPD_CLIENT_SYSTEM_ID`
 - `DPD_TIMEOUT`
-- `DPD_CONNECT_TIMEOUT`
 
 ## Extension Points
 

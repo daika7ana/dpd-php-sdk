@@ -5,7 +5,7 @@ The SDK maps transport failures and DPD API failures into a small exception hier
 ## Exception Types
 
 - `DpdException`: base exception for SDK-specific failures
-- `TransportException`: network or HTTP client failure before a valid DPD payload is mapped
+- `TransportException`: network or HTTP client failure before a valid DPD payload is mapped; implements `Psr\Http\Client\ClientExceptionInterface`
 - `AuthenticationException`: credential-related DPD failure
 - `ApiException`: structured DPD API error response
 - `ValidationException`: validation-focused API failure when DPD reports invalid request data

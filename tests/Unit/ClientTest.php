@@ -97,4 +97,44 @@ final class ClientTest extends TestCase
 
         $this->assertSame(2.5, $httpClient->lastTimeout);
     }
+
+    public function testConfigTimeoutReachesTransport(): void
+    {
+        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'));
+        $factory = new HttpFactory();
+        $client = Client::create(
+            httpClient: $httpClient,
+            requestFactory: $factory,
+            streamFactory: $factory,
+            config: new ClientConfig(username: 'demo-user', password: 'demo-password', timeout: 7.5),
+        );
+
+        $client->send($client->createRequest(ApiRequest::json('POST', '/services')));
+
+        $this->assertSame(7.5, $httpClient->lastTimeout);
+    }
+
+    public function testCreateRejectsConfigTimeoutWithForeignPsr18Client(): void
+    {
+        $foreignClient = new class implements \Psr\Http\Client\ClientInterface {
+            public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                return new Response(200);
+            }
+        };
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('ClientConfig::timeout cannot be applied to a foreign PSR-18 client; configure the timeout on that client or leave it null.');
+
+        Client::create(
+            httpClient: $foreignClient,
+            config: new ClientConfig(
+                username: 'demo-user',
+                password: 'demo-password',
+                language: 'EN',
+                clientSystemId: 33,
+                timeout: 5.0,
+            ),
+        );
+    }
 }

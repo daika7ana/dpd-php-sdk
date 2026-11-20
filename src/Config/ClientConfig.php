@@ -8,10 +8,6 @@ final class ClientConfig
 {
     public const BASE_URL_PRODUCTION = 'https://api.dpd.ro/v1';
 
-    public const DEFAULT_TIMEOUT = 30.0;
-
-    public const DEFAULT_CONNECT_TIMEOUT = 10.0;
-
     public readonly string $baseUrl;
 
     public readonly string $username;
@@ -22,9 +18,7 @@ final class ClientConfig
 
     public readonly ?int $clientSystemId;
 
-    public readonly float $timeout;
-
-    public readonly float $connectTimeout;
+    public readonly ?float $timeout;
 
     public function __construct(
         string $baseUrl = self::BASE_URL_PRODUCTION,
@@ -32,16 +26,14 @@ final class ClientConfig
         string $password = '',
         string $language = 'RO',
         ?int $clientSystemId = null,
-        ?float $timeout = self::DEFAULT_TIMEOUT,
-        ?float $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT,
+        ?float $timeout = null,
     ) {
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->username = $username;
         $this->password = $password;
         $this->language = strtoupper($language);
         $this->clientSystemId = $clientSystemId;
-        $this->timeout = $timeout ?? self::DEFAULT_TIMEOUT;
-        $this->connectTimeout = $connectTimeout ?? self::DEFAULT_CONNECT_TIMEOUT;
+        $this->timeout = $timeout;
     }
 
     public function withBaseUrl(string $baseUrl): self
@@ -53,7 +45,6 @@ final class ClientConfig
             language: $this->language,
             clientSystemId: $this->clientSystemId,
             timeout: $this->timeout,
-            connectTimeout: $this->connectTimeout,
         );
     }
 
@@ -66,7 +57,6 @@ final class ClientConfig
             language: $this->language,
             clientSystemId: $this->clientSystemId,
             timeout: $this->timeout,
-            connectTimeout: $this->connectTimeout,
         );
     }
 
@@ -79,7 +69,6 @@ final class ClientConfig
             language: $language,
             clientSystemId: $this->clientSystemId,
             timeout: $this->timeout,
-            connectTimeout: $this->connectTimeout,
         );
     }
 
@@ -92,11 +81,10 @@ final class ClientConfig
             language: $this->language,
             clientSystemId: $clientSystemId,
             timeout: $this->timeout,
-            connectTimeout: $this->connectTimeout,
         );
     }
 
-    public function withTimeouts(?float $timeout = null, ?float $connectTimeout = null): self
+    public function withTimeout(?float $timeout): self
     {
         return new self(
             baseUrl: $this->baseUrl,
@@ -104,8 +92,7 @@ final class ClientConfig
             password: $this->password,
             language: $this->language,
             clientSystemId: $this->clientSystemId,
-            timeout: $timeout ?? $this->timeout,
-            connectTimeout: $connectTimeout ?? $this->connectTimeout,
+            timeout: $timeout,
         );
     }
 
@@ -118,7 +105,6 @@ final class ClientConfig
             language: (string) (getenv('DPD_LANGUAGE') ?: 'RO'),
             clientSystemId: self::parseNullableInt(getenv('DPD_CLIENT_SYSTEM_ID') ?: null),
             timeout: self::parseNullableFloat(getenv('DPD_TIMEOUT') ?: null),
-            connectTimeout: self::parseNullableFloat(getenv('DPD_CONNECT_TIMEOUT') ?: null),
         );
     }
 

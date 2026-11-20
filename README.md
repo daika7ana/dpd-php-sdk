@@ -35,7 +35,7 @@ A modern, type-safe PHP SDK for the **DPD Romania API**
 
 - ✅ **Fully Typed DTOs** — Explicit request and response objects across the implemented API surface
 - ✅ **Immutable Client Configuration** — Optional environment bootstrapping without mutable runtime defaults
-- ✅ **PSR-18 HTTP Client** — Guzzle wired by default with custom client seams when needed
+- ✅ **PSR-18 HTTP Client** — PSR-18 transport seams; Guzzle is wired automatically by default
 - ✅ **Mixed Response Handling** — Shared JSON, binary, and CSV support for DPD's rough edges
 - ✅ **Typed Exception Mapping** — Transport, authentication, validation, and API failures are separated cleanly
 - ✅ **Reference-Data Caching** — Optional caching for CSV-backed location imports
@@ -93,8 +93,9 @@ For a full end-to-end walkthrough, continue with [docs/QUICKSTART.md](docs/QUICK
 - `password`
 - `language`
 - `clientSystemId`
-- `timeout` (default `30.0` seconds; `0` disables it)
-- `connectTimeout` (default `10.0` seconds)
+- `timeout` (optional request timeout in seconds)
+
+`ClientConfig::timeout` is `null` by default. Precedence: the per-call argument → `ClientConfig::timeout` → the transport's own default (`GuzzleHttpClient` uses 30 s to respond and 10 s to connect unless you pass `timeout:`/`connectTimeout:`; an injected `GuzzleClient` keeps its own configuration). A bare PSR-18 client keeps its own timeout and cannot receive the per-call argument — passing one throws `InvalidArgumentException`; combining a bare client with a non-null `ClientConfig::timeout` also throws.
 
 Use `ClientConfig::fromEnvironment()` when you want configuration to come from environment variables instead of application code.
 
@@ -142,7 +143,7 @@ composer ci
 composer test:smoke
 ```
 
-`composer ci` runs formatting, static analysis, and the unit suite. Smoke tests skip automatically when the required environment values are missing.
+`composer ci` validates `composer.json`, then runs formatting, static analysis, and the unit suite. Smoke tests skip automatically when the required environment values are missing.
 
 ## Documentation
 

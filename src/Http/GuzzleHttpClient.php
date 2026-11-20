@@ -12,33 +12,39 @@ use Psr\Http\Message\ResponseInterface;
 
 final class GuzzleHttpClient implements HttpClientInterface
 {
+    public const DEFAULT_TIMEOUT = 30.0;
+
+    public const DEFAULT_CONNECT_TIMEOUT = 10.0;
+
     private GuzzleClient $guzzleClient;
 
     public function __construct(
         ?GuzzleClient $guzzleClient = null,
-        ?float $timeout = null,
-        ?float $connectTimeout = null,
+        private ?float $timeout = null,
+        private ?float $connectTimeout = null,
     ) {
-        $this->guzzleClient = $guzzleClient ?? new GuzzleClient(array_filter([
-            'timeout' => $timeout,
-            'connect_timeout' => $connectTimeout,
-        ], static fn(mixed $value): bool => $value !== null));
+        $this->guzzleClient = $guzzleClient ?? new GuzzleClient([
+            'timeout' => $timeout ?? self::DEFAULT_TIMEOUT,
+            'connect_timeout' => $connectTimeout ?? self::DEFAULT_CONNECT_TIMEOUT,
+        ]);
     }
 
     public function sendRequest(RequestInterface $request, ?float $timeout = null): ResponseInterface
     {
-        try {
-            if ($timeout !== null) {
-                return $this->guzzleClient->send($request, ['timeout' => $timeout]);
-            }
+        $options = ['http_errors' => false, 'allow_redirects' => false];
 
-            return $this->guzzleClient->sendRequest($request);
-        } catch (GuzzleException $exception) {
-            throw new TransportException(
-                message: $exception->getMessage(),
-                code: $exception->getCode(),
-                previous: $exception,
-            );
+        $effectiveTimeout = $timeout ?? $this->timeout;
+        if ($effectiveTimeout !== null) {
+            $options['timeout'] = $effectiveTimeout;
+        }
+        if ($this->connectTimeout !== null) {
+            $options['connect_timeout'] = $this->connectTimeout;
+        }
+
+        try {
+            return $this->guzzleClient->send($request, $options);
+        } catch (GuzzleException $e) {
+            throw new TransportException(message: $e->getMessage(), code: $e->getCode(), previous: $e);
         }
     }
 }

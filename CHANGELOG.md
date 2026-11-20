@@ -5,7 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.1.0] - 2026-11-20
+
+### Added
+
+- `Client::create()` and `Client::__construct()` accept any PSR-18 `ClientInterface`; a bare client is wrapped in `Http\Psr18HttpClientAdapter`, so no adapter is needed.
+- `GuzzleHttpClient::DEFAULT_TIMEOUT` (30 s) and `DEFAULT_CONNECT_TIMEOUT` (10 s), plus `timeout:` and `connectTimeout:` constructor arguments for the Guzzle client it builds.
+- `TransportException` implements `Psr\Http\Client\ClientExceptionInterface`.
+
+### Changed
+
+- **Breaking:** `ClientConfig::timeout` is now `?float` and defaults to `null`. `ClientConfig::DEFAULT_TIMEOUT`, `ClientConfig::DEFAULT_CONNECT_TIMEOUT`, `ClientConfig::$connectTimeout` and the `DPD_CONNECT_TIMEOUT` environment variable are removed; set a connect timeout with `new GuzzleHttpClient(connectTimeout: 5.0)`.
+- **Breaking:** `ClientConfig::withTimeouts()` is now `withTimeout(?float $timeout)`; passing `null` clears the timeout.
+- Timeouts are applied per request. Precedence: the `Client::send()` argument, then `ClientConfig::timeout`, then the transport defaults (30 s request / 10 s connect when `GuzzleHttpClient` builds its own client). A non-null `ClientConfig::timeout` combined with a foreign PSR-18 client throws `InvalidArgumentException`, and a per-call timeout passed to such a client throws too.
+- A PSR-18 client that throws a `ClientExceptionInterface` is now wrapped in `TransportException`.
+
+### Fixed
+
+- `GuzzleHttpClient` now sends `http_errors => false` and `allow_redirects => false` on the per-request timeout path as well, so 4xx/5xx responses reach `ApiResponseMapper`. On that path they now raise `ApiException`/`ValidationException`/`AuthenticationException` instead of `TransportException`; all of them extend `DpdException`.
 
 ## [3.0.0] - 2026-11-19
 

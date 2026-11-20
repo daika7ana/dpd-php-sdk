@@ -13,7 +13,11 @@ composer require daika7ana/dpd-php-sdk
 
 ## Transport Defaults
 
-The SDK ships with a Guzzle-based PSR-18 adapter by default. If your application already standardizes on a different PSR-18 client or PSR-17 factories, pass them into `Client::create()` instead of replacing the rest of the SDK surface.
+The SDK ships with a Guzzle-based PSR-18 adapter and PSR-17 factories.
+`guzzlehttp/guzzle` is a normal runtime dependency, so `Client::create()` works
+after `composer require` without extra setup. You can still pass any PSR-18
+client and PSR-17 request/stream factories into `Client::create()` to bypass the
+default adapter.
 
 ## Next Step
 

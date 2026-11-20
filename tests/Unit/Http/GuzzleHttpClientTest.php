@@ -59,6 +59,19 @@ final class GuzzleHttpClientTest extends TestCase
         }
     }
 
+    public function testPerRequestTimeoutKeepsNonSuccessfulResponse(): void
+    {
+        $mockHandler = new MockHandler([
+            new Response(422, ['Content-Type' => 'application/json'], '{"error":{"code":1,"message":"bad"}}'),
+        ]);
+        $guzzle = new GuzzleClient(['handler' => HandlerStack::create($mockHandler)]);
+        $client = new GuzzleHttpClient($guzzle);
+
+        $response = $client->sendRequest(new Request('POST', 'https://api.dpd.ro/v1/test'), 2.5);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
     public function testConstructorAppliesConfiguredTimeouts(): void
     {
         $client = new GuzzleHttpClient(timeout: 1.5, connectTimeout: 0.5);
@@ -68,6 +81,17 @@ final class GuzzleHttpClientTest extends TestCase
 
         $this->assertSame(1.5, $config['timeout']);
         $this->assertSame(0.5, $config['connect_timeout']);
+    }
+
+    public function testConstructorAppliesTransportDefaults(): void
+    {
+        $client = new GuzzleHttpClient();
+
+        $property = new \ReflectionProperty(GuzzleHttpClient::class, 'guzzleClient');
+        $config = $property->getValue($client)->getConfig();
+
+        $this->assertSame(30.0, $config['timeout']);
+        $this->assertSame(10.0, $config['connect_timeout']);
     }
 
     public function testPerRequestTimeoutIsForwardedToGuzzle(): void
