@@ -15,6 +15,8 @@
 
 Connect timeout now lives on the transport: `new GuzzleHttpClient(timeout: 30.0, connectTimeout: 5.0)`.
 
+When some calls need a different budget than the rest, derive a client: `$other = $client->withTimeout(30.0);` returns a new client sharing the transport, the PSR-17 factories, the credentials provider and the reference-data cache, so no new transport is built and cached reference data is not refetched; the original client keeps its timeout. `withTimeout(null)` returns to the transport default.
+
 ## Build A Client Explicitly
 
 ```php

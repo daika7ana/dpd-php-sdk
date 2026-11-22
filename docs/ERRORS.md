@@ -11,7 +11,7 @@ The SDK maps transport failures and DPD API failures into a small exception hier
 - `ValidationException`: validation-focused API failure when DPD reports invalid request data
 - `UnsupportedResponseException`: response shape or content type does not match the expected decoder
 
-Structured API error fields are preserved on the attached `DpdError` object.
+Structured API error fields are preserved on the attached `DpdError` object. Exceptions thrown by `ApiResponseMapper` for an HTTP response expose it as `$exception->response`; `responseDetails` stays metadata-only. The numeric `Retry-After` header (seconds) is exposed as `$exception->retryAfter` (`null` when absent or non-numeric; HTTP dates are not parsed).
 
 ## Typical Handling
 

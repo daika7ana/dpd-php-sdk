@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Tests\Unit;
 
+use Daika7ana\Dpd\Auth\Credentials;
+use Daika7ana\Dpd\Auth\InMemoryCredentialsProvider;
+use Daika7ana\Dpd\Cache\ArrayReferenceDataCache;
 use Daika7ana\Dpd\Client;
 use Daika7ana\Dpd\Config\ClientConfig;
 use Daika7ana\Dpd\Http\ApiRequest;
@@ -114,6 +117,37 @@ final class ClientTest extends TestCase
         $this->assertSame(7.5, $httpClient->lastTimeout);
     }
 
+    public function testWithTimeoutDerivesAClientSharingCredentialsAndCache(): void
+    {
+        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'));
+        $factory = new HttpFactory();
+        $credentialsProvider = new InMemoryCredentialsProvider(new Credentials('demo-user', 'demo-password', 'EN'));
+        $cache = new ArrayReferenceDataCache();
+        $client = Client::create(
+            httpClient: $httpClient,
+            requestFactory: $factory,
+            streamFactory: $factory,
+            config: new ClientConfig(username: 'demo-user', password: 'demo-password', timeout: 10.0),
+            credentialsProvider: $credentialsProvider,
+            referenceDataCache: $cache,
+        );
+
+        $derived = $client->withTimeout(30.0);
+
+        $this->assertSame(30.0, $derived->getConfig()->timeout);
+        $this->assertSame(10.0, $client->getConfig()->timeout);
+        $this->assertSame($credentialsProvider, $derived->credentialsProvider());
+        $this->assertSame($cache, $derived->referenceDataCache());
+
+        // Cached reference data written through the original is served to the
+        // derived client without a refetch.
+        $client->rememberReferenceData('countries', static fn() => ['ro']);
+        $this->assertSame(['ro'], $derived->referenceDataCache()->get('countries'));
+
+        $derived->send($derived->createRequest(ApiRequest::json('POST', '/services')));
+        $this->assertSame(30.0, $httpClient->lastTimeout);
+    }
+
     public function testCreateRejectsConfigTimeoutWithForeignPsr18Client(): void
     {
         $foreignClient = new class implements \Psr\Http\Client\ClientInterface {
@@ -136,5 +170,32 @@ final class ClientTest extends TestCase
                 timeout: 5.0,
             ),
         );
+    }
+
+    public function testWithTimeoutRejectsForeignPsr18ClientTransport(): void
+    {
+        $foreignClient = new class implements \Psr\Http\Client\ClientInterface {
+            public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                return new Response(200);
+            }
+        };
+
+        $client = Client::create(
+            httpClient: $foreignClient,
+            config: new ClientConfig(
+                username: 'demo-user',
+                password: 'demo-password',
+                language: 'EN',
+                clientSystemId: 33,
+            ),
+        );
+
+        $client->withTimeout(null);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('ClientConfig::timeout cannot be applied to a foreign PSR-18 client; configure the timeout on that client or leave it null.');
+
+        $client->withTimeout(30.0);
     }
 }

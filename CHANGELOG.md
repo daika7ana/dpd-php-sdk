@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-11-22
+
+### Added
+
+- `Client::withTimeout(?float $timeout)` derives a client sharing the transport, PSR-17 factories, credentials provider and reference-data cache with a different request timeout budget — cached reference data is not refetched and no new transport is built.
+- HTTP-level exceptions thrown by `ApiResponseMapper` (`ApiException`, `AuthenticationException`, `UnsupportedResponseException`, `ValidationException`) expose the raw PSR-7 `ResponseInterface` as `$exception->response` and the numeric `Retry-After` value in seconds as `$exception->retryAfter` (`null` when absent or non-numeric); both are optional properties on `DpdException`.
+
 ## [3.1.0] - 2026-11-20
 
 ### Added

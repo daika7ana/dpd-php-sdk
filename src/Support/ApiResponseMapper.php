@@ -33,6 +33,8 @@ final class ApiResponseMapper
                 throw new AuthenticationException(
                     message: sprintf('Authentication failed with HTTP status %d.', $statusCode),
                     responseDetails: self::responseDetails($response),
+                    response: $response,
+                    retryAfter: self::retryAfter($response),
                 );
             }
 
@@ -40,12 +42,16 @@ final class ApiResponseMapper
                 throw new ApiException(
                     message: sprintf('DPD API returned HTTP %d (%s).', $statusCode, $contentType !== '' ? $contentType : 'unknown content type'),
                     responseDetails: self::responseDetails($response),
+                    response: $response,
+                    retryAfter: self::retryAfter($response),
                 );
             }
 
             throw new UnsupportedResponseException(
                 message: sprintf('Expected JSON response, received "%s" (HTTP %d).', $contentType !== '' ? $contentType : 'unknown', $statusCode),
                 responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -61,6 +67,8 @@ final class ApiResponseMapper
             throw new AuthenticationException(
                 message: sprintf('Authentication failed with HTTP status %d.', $statusCode),
                 responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -68,6 +76,8 @@ final class ApiResponseMapper
             throw new UnsupportedResponseException(
                 message: sprintf('Unexpected HTTP status %d.', $statusCode),
                 responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -93,12 +103,16 @@ final class ApiResponseMapper
                 throw new AuthenticationException(
                     message: sprintf('Authentication failed with HTTP status %d.', $response->getStatusCode()),
                     responseDetails: self::responseDetails($response),
+                    response: $response,
+                    retryAfter: self::retryAfter($response),
                 );
             }
 
             throw new UnsupportedResponseException(
                 message: 'Expected binary response, received JSON payload.',
                 responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -107,12 +121,16 @@ final class ApiResponseMapper
                 throw new AuthenticationException(
                     message: sprintf('Authentication failed with HTTP status %d.', $response->getStatusCode()),
                     responseDetails: self::responseDetails($response),
+                    response: $response,
+                    retryAfter: self::retryAfter($response),
                 );
             }
 
             throw new ApiException(
                 message: sprintf('DPD API returned HTTP %d for binary response.', $response->getStatusCode()),
                 responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -120,6 +138,8 @@ final class ApiResponseMapper
             throw new UnsupportedResponseException(
                 message: sprintf('Unsupported binary content type "%s".', $contentType !== '' ? $contentType : 'unknown'),
                 responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -151,6 +171,8 @@ final class ApiResponseMapper
                 code: $error->code,
                 error: $error,
                 responseDetails: $responseDetails,
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -160,6 +182,8 @@ final class ApiResponseMapper
                 code: $error->code,
                 error: $error,
                 responseDetails: $responseDetails,
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -168,6 +192,8 @@ final class ApiResponseMapper
             code: $error->code,
             error: $error,
             responseDetails: $responseDetails,
+            response: $response,
+            retryAfter: self::retryAfter($response),
         );
     }
 
@@ -182,6 +208,8 @@ final class ApiResponseMapper
             throw new UnsupportedResponseException(
                 message: 'Response body is not valid JSON: ' . $exception->getMessage(),
                 responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
                 previous: $exception,
             );
         }
@@ -200,6 +228,13 @@ final class ApiResponseMapper
             'errorCode' => $error?->code,
             'errorMessage' => $error?->message,
         ], static fn(mixed $value): bool => $value !== null);
+    }
+
+    public static function retryAfter(ResponseInterface $response): ?int
+    {
+        $value = trim($response->getHeaderLine('Retry-After'));
+
+        return ctype_digit($value) ? (int) $value : null;
     }
 
     private static function normalizeContentType(string $contentType): string

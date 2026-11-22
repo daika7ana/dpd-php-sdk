@@ -137,6 +137,22 @@ final class ApiResponseMapperTest extends TestCase
         $this->assertSame(120, $payload['error']['code']);
     }
 
+    public function testHttpErrorExceptionExposesRawPsr7Response(): void
+    {
+        $response = new Response(500, ['Content-Type' => 'application/json'], json_encode([
+            'error' => ['code' => 999, 'message' => 'Upstream failure.', 'id' => 'err-999'],
+        ], JSON_THROW_ON_ERROR));
+
+        try {
+            ApiResponseMapper::decodeJson($response);
+            $this->fail('Expected ApiException.');
+        } catch (ApiException $exception) {
+            $this->assertSame($response, $exception->response);
+            $this->assertSame(500, $exception->response->getStatusCode());
+            $this->assertSame(500, $exception->responseDetails['statusCode']);
+        }
+    }
+
     public function testResponseDetailsDoNotKeepTheRawBody(): void
     {
         try {
@@ -148,6 +164,23 @@ final class ApiResponseMapperTest extends TestCase
             $this->assertArrayNotHasKey('body', $exception->responseDetails);
             $this->assertArrayNotHasKey('payload', $exception->responseDetails);
             $this->assertSame(400, $exception->responseDetails['statusCode']);
+        }
+    }
+
+    public function testExceptionsExposeRetryAfterHeader(): void
+    {
+        try {
+            ApiResponseMapper::decodeJson(new Response(429, ['Retry-After' => '30'], 'rate limited'));
+            $this->fail('Expected ApiException.');
+        } catch (ApiException $exception) {
+            $this->assertSame(30, $exception->retryAfter);
+        }
+
+        try {
+            ApiResponseMapper::decodeJson(new Response(429, [], 'rate limited'));
+            $this->fail('Expected ApiException.');
+        } catch (ApiException $exception) {
+            $this->assertNull($exception->retryAfter);
         }
     }
 }

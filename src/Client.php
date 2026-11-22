@@ -120,6 +120,27 @@ final class Client
         return $this->config;
     }
 
+    /**
+     * A client sharing this client's transport, PSR-17 factories, credentials
+     * provider and reference-data cache, but with a different request timeout
+     * budget. Lazy resources start fresh on the derived client.
+     */
+    public function withTimeout(?float $timeout): self
+    {
+        if ($timeout !== null && $this->httpClient instanceof Psr18HttpClientAdapter) {
+            throw new \InvalidArgumentException('ClientConfig::timeout cannot be applied to a foreign PSR-18 client; configure the timeout on that client or leave it null.');
+        }
+
+        return new self(
+            $this->httpClient,
+            $this->requestFactory,
+            $this->streamFactory,
+            $this->config->withTimeout($timeout),
+            $this->credentialsProvider,
+            $this->referenceDataCache,
+        );
+    }
+
     public function getCredentials(): Credentials
     {
         return $this->credentialsProvider->getCredentials();

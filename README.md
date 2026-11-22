@@ -121,6 +121,9 @@ Use `ClientConfig::fromEnvironment()` when you want configuration to come from e
 
 Connect timeout lives on the transport: `new GuzzleHttpClient(timeout: 30.0, connectTimeout: 5.0)`.
 
+For a different budget, `$slow = $client->withTimeout(30.0);` returns a new
+client sharing the transport; the original keeps its timeout.
+
 ### Operational Notes
 
 - DPD credentials are attached to every request payload, so request logging should always be treated as sensitive.
