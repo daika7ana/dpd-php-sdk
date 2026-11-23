@@ -9,7 +9,7 @@ use Daika7ana\Dpd\DTOs\Clients\Records\ClientRecord;
 use Daika7ana\Dpd\DTOs\Clients\Contracts\ContractInfo;
 use Daika7ana\Dpd\DTOs\Clients\Requests\CreateContactRequest;
 use Daika7ana\SimpleCollections\Collection;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Http\ApiRequest;
 use Daika7ana\Dpd\Support\PayloadFilter;
 
@@ -36,7 +36,7 @@ final readonly class ClientsResource
         $rawClients = $data['clients'] ?? null;
 
         if (!is_array($rawClients)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a clients array in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );
@@ -79,7 +79,7 @@ final readonly class ClientsResource
     private function requireClientId(array $data): int
     {
         if (!isset($data['clientId']) || !is_numeric($data['clientId'])) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a numeric clientId in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );

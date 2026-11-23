@@ -31,6 +31,6 @@ If the configured provider is mutable, `Client::setCredentials()` can update cre
 
 ## Failure Handling
 
-Credential-related failures are mapped to `AuthenticationException`.
+Only an HTTP `401` response maps to `AuthenticationException`. An authorization failure reported as `403` is an `UnexpectedStatusException`, with `$error->isAuthenticationRelated()` set to `true`; see [Errors](ERRORS.md).
 
 Because credentials are copied into every request payload, raw request logging should always be redacted.

@@ -8,7 +8,7 @@ use Daika7ana\Dpd\Client;
 use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Payments\Payouts\Payout;
 use Daika7ana\Dpd\DTOs\Payments\Requests\PayoutRequest;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Http\ApiRequest;
 
 final readonly class PaymentsResource
@@ -26,7 +26,7 @@ final readonly class PaymentsResource
         $rawPayouts = $data['payouts'] ?? null;
 
         if (!is_array($rawPayouts)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a payouts array in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );

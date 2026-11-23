@@ -218,7 +218,7 @@ final class MilestoneEightResourceTest extends TestCase
             static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'),
         ));
 
-        $this->expectException(\Daika7ana\Dpd\Exceptions\UnsupportedResponseException::class);
+        $this->expectException(\Daika7ana\Dpd\Exceptions\UnexpectedStatusException::class);
 
         $client->clients()->ownClientId();
     }

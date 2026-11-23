@@ -4,25 +4,6 @@ declare(strict_types=1);
 
 namespace Daika7ana\Dpd\Exceptions;
 
-use Daika7ana\Dpd\DTOs\Common\Errors\DpdError;
-use Psr\Http\Message\ResponseInterface;
-use RuntimeException;
-use Throwable;
+use Exception;
 
-class DpdException extends RuntimeException
-{
-    /**
-     * @param array<string, mixed> $responseDetails
-     */
-    public function __construct(
-        string $message,
-        int $code = 0,
-        public readonly ?DpdError $error = null,
-        public readonly array $responseDetails = [],
-        ?Throwable $previous = null,
-        public readonly ?ResponseInterface $response = null,
-        public readonly ?int $retryAfter = null,
-    ) {
-        parent::__construct($message, $code, $previous);
-    }
-}
+class DpdException extends Exception {}

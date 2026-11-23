@@ -25,7 +25,7 @@ use Daika7ana\Dpd\DTOs\Locations\Requests\PointOfInterestSearchRequest;
 use Daika7ana\Dpd\DTOs\Locations\Requests\SiteSearchRequest;
 use Daika7ana\Dpd\DTOs\Locations\Requests\StateSearchRequest;
 use Daika7ana\Dpd\DTOs\Locations\Requests\StreetSearchRequest;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Http\ApiRequest;
 use Daika7ana\Dpd\Support\CsvHelper;
 
@@ -265,7 +265,7 @@ final class LocationsResource
         }
 
         if (!is_array($entity)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: sprintf('Expected a %s object in the DPD response.', $resultKey),
                 responseDetails: ['resultKeys' => array_keys($data)],
             );
@@ -288,7 +288,7 @@ final class LocationsResource
         $entities = $data[$resultKey] ?? null;
 
         if (!is_array($entities)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: sprintf('Expected a %s array in the DPD response.', $resultKey),
                 responseDetails: ['resultKeys' => array_keys($data)],
             );
@@ -334,7 +334,7 @@ final class LocationsResource
                 }
 
                 if ($items === []) {
-                    throw new UnsupportedResponseException(
+                    throw new UnexpectedStatusException(
                         message: 'The DPD CSV endpoint returned no rows.',
                         responseDetails: ['contentType' => $csv->mimeType],
                     );

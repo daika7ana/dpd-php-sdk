@@ -6,9 +6,8 @@ namespace Daika7ana\Dpd\Support;
 
 use Daika7ana\Dpd\DTOs\Common\Documents\BinaryContent;
 use Daika7ana\Dpd\DTOs\Common\Errors\DpdError;
-use Daika7ana\Dpd\Exceptions\ApiException;
 use Daika7ana\Dpd\Exceptions\AuthenticationException;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Exceptions\ValidationException;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -29,17 +28,24 @@ final class ApiResponseMapper
         }
 
         if ($contentType !== 'application/json') {
-            if ($statusCode === 401 || $statusCode === 403) {
+            if ($statusCode === 401) {
                 throw new AuthenticationException(
                     message: sprintf('Authentication failed with HTTP status %d.', $statusCode),
-                    responseDetails: self::responseDetails($response),
+                    response: $response,
+                    retryAfter: self::retryAfter($response),
+                );
+            }
+
+            if ($statusCode === 400 || $statusCode === 422) {
+                throw new ValidationException(
+                    message: sprintf('DPD API returned HTTP %d (%s).', $statusCode, $contentType !== '' ? $contentType : 'unknown content type'),
                     response: $response,
                     retryAfter: self::retryAfter($response),
                 );
             }
 
             if ($statusCode < 200 || $statusCode >= 300) {
-                throw new ApiException(
+                throw new UnexpectedStatusException(
                     message: sprintf('DPD API returned HTTP %d (%s).', $statusCode, $contentType !== '' ? $contentType : 'unknown content type'),
                     responseDetails: self::responseDetails($response),
                     response: $response,
@@ -47,7 +53,7 @@ final class ApiResponseMapper
                 );
             }
 
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: sprintf('Expected JSON response, received "%s" (HTTP %d).', $contentType !== '' ? $contentType : 'unknown', $statusCode),
                 responseDetails: self::responseDetails($response),
                 response: $response,
@@ -63,17 +69,24 @@ final class ApiResponseMapper
             }
         }
 
-        if ($statusCode === 401 || $statusCode === 403) {
+        if ($statusCode === 401) {
             throw new AuthenticationException(
                 message: sprintf('Authentication failed with HTTP status %d.', $statusCode),
-                responseDetails: self::responseDetails($response),
+                response: $response,
+                retryAfter: self::retryAfter($response),
+            );
+        }
+
+        if ($statusCode === 400 || $statusCode === 422) {
+            throw new ValidationException(
+                message: sprintf('DPD API returned HTTP %d.', $statusCode),
                 response: $response,
                 retryAfter: self::retryAfter($response),
             );
         }
 
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: sprintf('Unexpected HTTP status %d.', $statusCode),
                 responseDetails: self::responseDetails($response),
                 response: $response,
@@ -94,39 +107,62 @@ final class ApiResponseMapper
 
         if ($contentType === 'application/json') {
             $payload = self::decodePayload($response, $body);
+            $error = isset($payload['error']) && is_array($payload['error']) && $payload['error'] !== []
+                ? DpdError::fromArray($payload['error'], $response->getStatusCode())
+                : null;
 
-            if (isset($payload['error']) && is_array($payload['error']) && $payload['error'] !== []) {
+            if ($error !== null) {
                 self::throwMappedError($payload['error'], $response);
             }
 
-            if ($response->getStatusCode() === 401 || $response->getStatusCode() === 403) {
+            if ($response->getStatusCode() === 401) {
                 throw new AuthenticationException(
                     message: sprintf('Authentication failed with HTTP status %d.', $response->getStatusCode()),
-                    responseDetails: self::responseDetails($response),
+                    code: $response->getStatusCode(),
+                    error: $error,
                     response: $response,
                     retryAfter: self::retryAfter($response),
                 );
             }
 
-            throw new UnsupportedResponseException(
+            if ($response->getStatusCode() === 400 || $response->getStatusCode() === 422) {
+                throw new ValidationException(
+                    message: sprintf('DPD API returned HTTP %d for binary response.', $response->getStatusCode()),
+                    code: $response->getStatusCode(),
+                    error: $error,
+                    response: $response,
+                    retryAfter: self::retryAfter($response),
+                );
+            }
+
+            throw new UnexpectedStatusException(
                 message: 'Expected binary response, received JSON payload.',
-                responseDetails: self::responseDetails($response),
+                code: $response->getStatusCode(),
+                error: $error,
+                responseDetails: self::responseDetails($response, $error),
                 response: $response,
                 retryAfter: self::retryAfter($response),
             );
         }
 
         if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
-            if ($response->getStatusCode() === 401 || $response->getStatusCode() === 403) {
+            if ($response->getStatusCode() === 401) {
                 throw new AuthenticationException(
                     message: sprintf('Authentication failed with HTTP status %d.', $response->getStatusCode()),
-                    responseDetails: self::responseDetails($response),
                     response: $response,
                     retryAfter: self::retryAfter($response),
                 );
             }
 
-            throw new ApiException(
+            if ($response->getStatusCode() === 400 || $response->getStatusCode() === 422) {
+                throw new ValidationException(
+                    message: sprintf('DPD API returned HTTP %d for binary response.', $response->getStatusCode()),
+                    response: $response,
+                    retryAfter: self::retryAfter($response),
+                );
+            }
+
+            throw new UnexpectedStatusException(
                 message: sprintf('DPD API returned HTTP %d for binary response.', $response->getStatusCode()),
                 responseDetails: self::responseDetails($response),
                 response: $response,
@@ -135,7 +171,7 @@ final class ApiResponseMapper
         }
 
         if (!in_array($contentType, $acceptedContentTypes, true)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: sprintf('Unsupported binary content type "%s".', $contentType !== '' ? $contentType : 'unknown'),
                 responseDetails: self::responseDetails($response),
                 response: $response,
@@ -161,35 +197,33 @@ final class ApiResponseMapper
      */
     private static function throwMappedError(array $errorPayload, ResponseInterface $response): never
     {
-        $error = DpdError::fromArray($errorPayload);
         $statusCode = $response->getStatusCode();
+        $error = DpdError::fromArray($errorPayload, $statusCode);
         $responseDetails = self::responseDetails($response, $error);
 
-        if ($statusCode === 401 || $statusCode === 403 || $error->isAuthenticationRelated()) {
+        if ($statusCode === 401) {
             throw new AuthenticationException(
                 message: $error->message,
-                code: $error->code,
+                code: $statusCode,
                 error: $error,
-                responseDetails: $responseDetails,
                 response: $response,
                 retryAfter: self::retryAfter($response),
             );
         }
 
-        if ($error->isValidationRelated()) {
+        if ($statusCode === 400 || $statusCode === 422) {
             throw new ValidationException(
                 message: $error->message,
-                code: $error->code,
+                code: $statusCode,
                 error: $error,
-                responseDetails: $responseDetails,
                 response: $response,
                 retryAfter: self::retryAfter($response),
             );
         }
 
-        throw new ApiException(
+        throw new UnexpectedStatusException(
             message: $error->message,
-            code: $error->code,
+            code: $statusCode,
             error: $error,
             responseDetails: $responseDetails,
             response: $response,
@@ -205,12 +239,11 @@ final class ApiResponseMapper
         try {
             return JsonHelper::decode($body);
         } catch (JsonException $exception) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Response body is not valid JSON: ' . $exception->getMessage(),
                 responseDetails: self::responseDetails($response),
                 response: $response,
                 retryAfter: self::retryAfter($response),
-                previous: $exception,
             );
         }
     }

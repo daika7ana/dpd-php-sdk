@@ -21,10 +21,10 @@ final readonly class DpdError
     /**
      * @param array<string, mixed> $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data, int $fallbackCode = 0): self
     {
         return new self(
-            code: (int) ($data['code'] ?? 0),
+            code: (int) ($data['code'] ?? $fallbackCode),
             message: (string) ($data['message'] ?? 'DPD API error.'),
             id: (string) ($data['id'] ?? ''),
             raw: $data,
@@ -73,6 +73,10 @@ final readonly class DpdError
 
     public function isAuthenticationRelated(): bool
     {
+        if (in_array($this->code, [401, 403], true)) {
+            return true;
+        }
+
         $message = strtolower($this->message);
 
         return str_contains($message, 'auth')

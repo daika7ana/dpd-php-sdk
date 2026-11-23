@@ -141,7 +141,7 @@ final class TrackingResourceTest extends TestCase
             static fn() => new Response(200, ['Content-Type' => 'application/json'], '{"parcels":"invalid"}'),
         ));
 
-        $this->expectException(\Daika7ana\Dpd\Exceptions\UnsupportedResponseException::class);
+        $this->expectException(\Daika7ana\Dpd\Exceptions\UnexpectedStatusException::class);
 
         $client->tracking()->track([new ShipmentParcelRef('PARCEL-1')]);
     }

@@ -9,7 +9,7 @@ use Daika7ana\Dpd\DTOs\Calculations\Results\ExtendedCourierService;
 use Daika7ana\Dpd\DTOs\Calculations\Requests\DestinationServicesRequest;
 use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Services\Catalog\CourierService;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Http\ApiRequest;
 use DateTimeInterface;
 
@@ -34,7 +34,7 @@ final class ServicesResource
         $rawServices = $data['services'] ?? null;
 
         if (!is_array($rawServices)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a services array in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );
@@ -62,7 +62,7 @@ final class ServicesResource
         $rawServices = $data['services'] ?? null;
 
         if (!is_array($rawServices)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a destination services array in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );

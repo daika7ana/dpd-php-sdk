@@ -3,6 +3,12 @@
     "description": "Typed PHP SDK for the DPD Romania API.",
     "type": "library",
     "license": "GPL-3.0-or-later",
+    "homepage": "https://github.com/daika7ana/dpd-php-sdk",
+    "support": {
+        "issues": "https://github.com/daika7ana/dpd-php-sdk/issues",
+        "source": "https://github.com/daika7ana/dpd-php-sdk",
+        "docs": "https://github.com/daika7ana/dpd-php-sdk#readme"
+    },
     "keywords": [
         "dpd",
         "courier",
@@ -28,6 +34,7 @@
     ],
     "require": {
         "php": ">=8.3",
+        "ext-json": "*",
         "daika7ana/simple-collections": "^1.0",
         "psr/http-client": "^1.0",
         "psr/http-factory": "^1.0",
@@ -37,7 +44,7 @@
     },
     "require-dev": {
         "laravel/pint": "^1.29",
-        "phpstan/phpstan": "2.1.*",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^12.0 || ^13.0"
     },
     "scripts": {

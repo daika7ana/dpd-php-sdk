@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-11-23
+
+### Added
+
+- Live smoke coverage for the `clients()` resource (`ownClientId`, `get`, `contractClients`, `contractInfo`).
+
+### Changed
+
+- **Breaking:** `DpdException` is now a plain marker extending `Exception`; `$response`, `$retryAfter`, `$error` and `$responseDetails` moved to the concrete HTTP exceptions.
+- **Breaking:** `AuthenticationException`, `ValidationException` and `UnexpectedStatusException` expose `$response`, `$retryAfter` and `$error`; `UnexpectedStatusException` also exposes `$responseDetails`.
+- **Breaking:** `ValidationException` now extends `DpdException` directly.
+- **Breaking:** HTTP exceptions now report the HTTP status from `getCode()` (or `0` without a response); carrier error codes stay on `$error->code`.
+- **Breaking:** exception classification is status-only: `400`/`422` raise `ValidationException`, `401` raises `AuthenticationException`, and every other non-2xx status raises `UnexpectedStatusException`; payload predicates are advisory hints only.
+- `DpdError::fromArray()` accepts a `$fallbackCode` used when the payload omits `code`, and `isAuthenticationRelated()` recognizes codes `401` and `403`.
+- Require `ext-json` and add the package `homepage` and `support` metadata.
+
+### Removed
+
+- **Breaking:** removed `ApiException` and `UnsupportedResponseException`; `UnexpectedStatusException` now handles non-2xx statuses and unexpected response shapes.
+
+### Fixed
+
+- Correct the authentication guide: only an HTTP `401` raises `AuthenticationException`; a `403` raises `UnexpectedStatusException`.
+
 ## [3.2.0] - 2026-11-22
 
 ### Added

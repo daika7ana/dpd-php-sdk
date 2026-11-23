@@ -8,7 +8,7 @@ use Daika7ana\Dpd\Client;
 use Daika7ana\Dpd\DTOs\Calculations\Results\CalculationResult;
 use Daika7ana\Dpd\DTOs\Calculations\Requests\CalculationRequest;
 use Daika7ana\SimpleCollections\Collection;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Http\ApiRequest;
 
 final readonly class CalculationsResource
@@ -26,7 +26,7 @@ final readonly class CalculationsResource
         $rawCalculations = $data['calculations'] ?? null;
 
         if (!is_array($rawCalculations)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a calculations array in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );

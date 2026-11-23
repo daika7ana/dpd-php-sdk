@@ -64,13 +64,13 @@ Optional fixture overrides:
 
 Optional smoke controls:
 
-- `DPD_SMOKE_ENABLE_WRITES=1` enables shipment creation and pickup ordering
-- `DPD_SMOKE_CANCEL_CREATED_SHIPMENTS=1` cancels shipments created by the smoke suite
+- `DPD_SMOKE_ENABLE_WRITES=true` enables shipment creation and pickup ordering
+- `DPD_SMOKE_CANCEL_CREATED_SHIPMENTS=true` cancels shipments created by the smoke suite
 - `DPD_SMOKE_PICKUP_SHIPMENT_ID` reuses an existing shipment for pickup smoke
-- `DPD_SMOKE_EXPECT_PAYOUTS=1` requires payout smoke to return data instead of only type-safe structure
+- `DPD_SMOKE_EXPECT_PAYOUTS=true` requires payout smoke to return data instead of only type-safe structure
 - `DPD_SMOKE_PRINT_FORMAT=zpl` switches print smoke from PDF to ZPL
 
-When `DPD_SMOKE_ENABLE_WRITES=1` is enabled, tracking and printing smoke tests can self-seed from a newly created shipment if no parcel reference env vars are configured.
+When `DPD_SMOKE_ENABLE_WRITES=true` is enabled, tracking and printing smoke tests can self-seed from a newly created shipment if no parcel reference env vars are configured.
 
 Smoke tests skip automatically when required credentials are missing, when account-specific parcel references are not configured, or when the configured DPD account cannot resolve the default live fixtures.
 
@@ -90,7 +90,7 @@ CI runs the unit suite, PHPStan and Pint on every push. Live smoke tests are man
 - authentication: `Credentials`, `InMemoryCredentialsProvider`, credential payloads
 - configuration: `ClientConfig` immutability, normalization, environment bootstrapping
 - caching: `ArrayReferenceDataCache` TTL expiration, `NullReferenceDataCache` no-op behavior
-- exception hierarchy: `DpdError` classification, `DpdException`/`ApiException`/`ValidationException`/`AuthenticationException`/`TransportException` chains
+- exception hierarchy: `DpdError` payload predicates, `DpdException`/`UnexpectedStatusException`/`ValidationException`/`AuthenticationException`/`TransportException` chains
 - complex DTOs: `Office` (48 properties, schedules, routing), `TrackedParcel`/`TrackedParcelOperation` (code resolution), `ExtendedPrintResponse` (base64 decode), `ShipmentRecord` (14 nested fields), `PrintDocument` (mime-type mapping)
 - request validation: `PickupRequest` time-format regex
 - shipment DTOs: `ShipmentParty`, `ShipmentContentRecord`, `SecondaryShipment`, `ShipmentDelivery`, `PrimaryShipment`, additional services (COD, return, OBPD, declared value)
@@ -98,7 +98,7 @@ CI runs the unit suite, PHPStan and Pint on every push. Live smoke tests are man
 - client DTOs: `ContractInfo`, `CodAdditionalServiceContractInfo`, `SpecialDeliveryRequirements`, `ClientRecord`
 - pickup and payment DTOs: `PickupOrder`, `Payout`, `PayoutDetail`, `ShipmentService`, `ShipmentParcel`, `ShipmentContent`, `GoodsItem`
 - collection behavior: `Daika7ana\SimpleCollections\Collection` with filter, map, pluck, and array access
-- live smoke workflows for services, validation, calculations, tracking, printing, shipments, pickup, and payouts when the account supports them
+- live smoke workflows for services, locations, validation, calculations, tracking, printing, shipments, pickup, payouts, and clients when the account supports them
 
 ## Release Check
 

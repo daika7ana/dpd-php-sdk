@@ -8,7 +8,7 @@ use Daika7ana\Dpd\Client;
 use Daika7ana\Dpd\Config\ClientConfig;
 use Daika7ana\Dpd\Enums\Services\AdditionalServiceAllowance;
 use Daika7ana\Dpd\Enums\Services\CargoType;
-use Daika7ana\Dpd\Exceptions\ValidationException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Support\JsonHelper;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use DateTimeImmutable;
@@ -67,7 +67,7 @@ final class ServicesResourceTest extends TestCase
         $this->assertSame(AdditionalServiceAllowance::Required, $service->additionalServices->declaredValue?->allowance);
     }
 
-    public function testListThrowsTypedValidationExceptionForEmbeddedApiErrors(): void
+    public function testListThrowsUnexpectedStatusExceptionForEmbeddedApiErrorPayloadOnSuccess(): void
     {
         $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'error' => [
@@ -87,7 +87,7 @@ final class ServicesResourceTest extends TestCase
             config: new ClientConfig(username: 'demo-user', password: 'demo-password'),
         );
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(UnexpectedStatusException::class);
         $this->expectExceptionMessage('Invalid address.');
 
         $client->services()->list();

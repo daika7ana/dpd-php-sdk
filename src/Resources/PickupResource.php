@@ -9,7 +9,7 @@ use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Pickup\Responses\PickupOrder;
 use Daika7ana\Dpd\DTOs\Pickup\Requests\PickupRequest;
 use Daika7ana\Dpd\DTOs\Pickup\Requests\PickupTermsRequest;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Http\ApiRequest;
 
 final readonly class PickupResource
@@ -27,7 +27,7 @@ final readonly class PickupResource
         $rawOrders = $data['orders'] ?? null;
 
         if (!is_array($rawOrders)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected an orders array in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );
@@ -50,7 +50,7 @@ final readonly class PickupResource
         $rawCutoffs = $data['cutoffs'] ?? null;
 
         if (!is_array($rawCutoffs)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a cutoffs array in the DPD response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );

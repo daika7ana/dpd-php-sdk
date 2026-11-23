@@ -14,7 +14,7 @@ use Daika7ana\Dpd\Enums\Printing\BarcodeFormat;
 use Daika7ana\Dpd\Enums\Printing\Dpi;
 use Daika7ana\Dpd\Enums\Printing\PaperSize;
 use Daika7ana\Dpd\Enums\Printing\PrintFormat;
-use Daika7ana\Dpd\Exceptions\ValidationException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Support\JsonHelper;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use Daika7ana\Dpd\Tests\Support\TestClientFactory;
@@ -89,7 +89,7 @@ final class PrintingResourceTest extends TestCase
         $this->assertSame('/v1/print/voucher', $httpClient->lastRequest?->getUri()->getPath());
     }
 
-    public function testPrintingDocumentRaisesValidationExceptionForJsonErrors(): void
+    public function testPrintingDocumentRaisesUnexpectedStatusExceptionForJsonErrorPayloadOnSuccess(): void
     {
         $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'error' => [
@@ -100,7 +100,7 @@ final class PrintingResourceTest extends TestCase
         ], JSON_THROW_ON_ERROR)));
         $client = TestClientFactory::create($httpClient);
 
-        $this->expectException(ValidationException::class);
+        $this->expectException(UnexpectedStatusException::class);
         $this->expectExceptionMessage('Invalid address.');
 
         $client->printing()->document(new PrintRequest(

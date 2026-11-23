@@ -6,7 +6,7 @@ namespace Daika7ana\Dpd\DTOs\Tracking\Responses;
 
 use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\Dpd\DTOs\Tracking\Models\TrackedParcel;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 
 final readonly class TrackResponse
 {
@@ -25,7 +25,7 @@ final readonly class TrackResponse
         $rawParcels = $data['parcels'] ?? [];
 
         if (!is_array($rawParcels)) {
-            throw new UnsupportedResponseException(
+            throw new UnexpectedStatusException(
                 message: 'Expected a parcels array in the DPD tracking response.',
                 responseDetails: ['resultKeys' => array_keys($data)],
             );

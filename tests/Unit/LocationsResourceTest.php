@@ -23,7 +23,7 @@ use Daika7ana\Dpd\Enums\Locations\NomenclatureSupport;
 use Daika7ana\Dpd\Enums\Locations\OfficeFeature;
 use Daika7ana\Dpd\Enums\Locations\OfficeType;
 use Daika7ana\Dpd\Enums\Services\CargoType;
-use Daika7ana\Dpd\Exceptions\UnsupportedResponseException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Support\JsonHelper;
 use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use Daika7ana\Dpd\Tests\Support\TestClientFactory;
@@ -389,8 +389,8 @@ final class LocationsResourceTest extends TestCase
         foreach ([1, 2] as $attempt) {
             try {
                 $client->locations()->allCountries();
-                $this->fail('Expected UnsupportedResponseException on attempt ' . $attempt);
-            } catch (UnsupportedResponseException) {
+                $this->fail('Expected UnexpectedStatusException on attempt ' . $attempt);
+            } catch (UnexpectedStatusException) {
             }
         }
 
@@ -409,8 +409,8 @@ final class LocationsResourceTest extends TestCase
         foreach ([1, 2] as $attempt) {
             try {
                 $client->locations()->allCountries();
-                $this->fail('Expected UnsupportedResponseException on attempt ' . $attempt);
-            } catch (UnsupportedResponseException) {
+                $this->fail('Expected UnexpectedStatusException on attempt ' . $attempt);
+            } catch (UnexpectedStatusException) {
             }
         }
 

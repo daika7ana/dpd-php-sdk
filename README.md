@@ -38,7 +38,7 @@ A modern, type-safe PHP SDK for the **DPD Romania API**
 - ✅ **Static Credentials** — DPD username, password, and language are merged into every JSON payload
 - ✅ **Ten Resource Areas** — `services()`, `shipments()`, `locations()`, `printing()`, `tracking()`, `pickup()`, `validation()`, `calculations()`, `clients()`, and `payments()`
 - ✅ **Mixed Response Handling** — Shared JSON, binary, and CSV support for DPD's rough edges
-- ✅ **Typed Exception Mapping** — Transport, authentication, validation, and API failures are separated cleanly
+- ✅ **Typed Exception Mapping** — Transport failures and DPD error responses map to distinct typed exceptions by cause and HTTP status
 - ✅ **Reference-Data Caching** — Optional caching for CSV-backed location imports
 - ✅ **Batching Helpers** — Explicit support for capped flows such as batched tracking and bulk hydration
 - ✅ **Static Analysis with PHPStan** — Level 8 checks across the `src/` codebase
@@ -244,7 +244,7 @@ composer ci
 
 ### Test Environment Variables
 
-Configure these in `phpunit.xml` to enable smoke tests:
+Set these in your shell or in a local `phpunit.xml` before running smoke tests:
 
 | Variable | Purpose |
 |----------|---------|

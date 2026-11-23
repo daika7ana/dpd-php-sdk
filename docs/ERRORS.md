@@ -4,29 +4,41 @@ The SDK maps transport failures and DPD API failures into a small exception hier
 
 ## Exception Types
 
-- `DpdException`: base exception for SDK-specific failures
+- `DpdException`: plain marker base extending `Exception` for SDK-specific failures
 - `TransportException`: network or HTTP client failure before a valid DPD payload is mapped; implements `Psr\Http\Client\ClientExceptionInterface`
-- `AuthenticationException`: credential-related DPD failure
-- `ApiException`: structured DPD API error response
-- `ValidationException`: validation-focused API failure when DPD reports invalid request data
-- `UnsupportedResponseException`: response shape or content type does not match the expected decoder
+- `AuthenticationException`: HTTP `401` response
+- `ValidationException`: HTTP `400` or `422` response
+- `UnexpectedStatusException`: non-2xx HTTP status or a response shape/content type that does not match the expected decoder
 
-Structured API error fields are preserved on the attached `DpdError` object. Exceptions thrown by `ApiResponseMapper` for an HTTP response expose it as `$exception->response`; `responseDetails` stays metadata-only. The numeric `Retry-After` header (seconds) is exposed as `$exception->retryAfter` (`null` when absent or non-numeric; HTTP dates are not parsed).
+`AuthenticationException`, `ValidationException` and `UnexpectedStatusException` expose the raw PSR-7 response as `$exception->response`, the numeric `Retry-After` header in seconds as `$exception->retryAfter` (`null` when absent or non-numeric; HTTP dates are not parsed), and the structured `DpdError` as `$exception->error`. `UnexpectedStatusException` additionally exposes metadata-only `$exception->responseDetails`; it never contains the raw body or payload.
+
+`$exception->getCode()` is the HTTP status when a response is present, otherwise `0`. Carrier error codes are never placed on `getCode()`; read them from `$exception->error?->code`. The `context` and `component` fields of `DpdError` are carrier-defined and may be absent or differ per endpoint.
+
+## Status Mapping
+
+| HTTP status | Exception |
+| --- | --- |
+| `401` | `AuthenticationException` |
+| `400`, `422` | `ValidationException` |
+| `403` | `UnexpectedStatusException` (its `$error->isAuthenticationRelated()` is true) |
+| any other non-2xx, or an unparseable/unexpected response shape | `UnexpectedStatusException` |
+
+Only the HTTP status decides the exception class; payload content never changes it. A `403` is an unexpected status, but `DpdError::isAuthenticationRelated()` returns true so callers can still detect authorization failures from the error object. `$error->isAuthenticationRelated()` and `$error->isValidationRelated()` are advisory hints for consumers, not class selectors: a `500` with an auth-flavored or validation-coded payload is still an `UnexpectedStatusException` with the error attached.
 
 ## Typical Handling
 
 ```php
-use Daika7ana\Dpd\Exceptions\ApiException;
 use Daika7ana\Dpd\Exceptions\DpdException;
+use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 
 try {
 	$shipment = $client->shipments()->create($shipmentRequest);
-} catch (ApiException $exception) {
+} catch (UnexpectedStatusException $exception) {
 	$error = $exception->error;
 
-	report($error?->message ?? $exception->getMessage());
+	error_log($error?->message ?? $exception->getMessage());
 } catch (DpdException $exception) {
-	report($exception->getMessage());
+	error_log($exception->getMessage());
 }
 ```
 

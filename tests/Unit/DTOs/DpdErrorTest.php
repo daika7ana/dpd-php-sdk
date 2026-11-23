@@ -40,6 +40,23 @@ final class DpdErrorTest extends TestCase
         $this->assertNull($error->component);
     }
 
+    public function testFromArrayUsesFallbackCodeWhenPayloadHasNoCode(): void
+    {
+        $this->assertSame(422, DpdError::fromArray([], 422)->code);
+        $this->assertSame(123, DpdError::fromArray(['code' => 123], 422)->code);
+    }
+
+    public function testIsAuthenticationRelatedReturnsTrueForAuthStatusCodes(): void
+    {
+        foreach ([401, 403] as $code) {
+            $error = DpdError::fromArray(['code' => $code, 'message' => 'Parcel not found', 'id' => 'test']);
+            $this->assertTrue($error->isAuthenticationRelated(), "Code {$code} should be auth-related");
+        }
+
+        $error = DpdError::fromArray(['code' => 400, 'message' => 'Parcel not found', 'id' => 'test']);
+        $this->assertFalse($error->isAuthenticationRelated());
+    }
+
     public function testIsValidationRelatedReturnsTrueForValidationCodes(): void
     {
         $validationCodes = [100, 120, 160, 180, 300, 400, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 460, 500, 510, 515, 520, 600, 605, 610, 615, 620, 630, 700, 710, 800, 805, 810];
