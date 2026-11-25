@@ -28,7 +28,8 @@ vendor/bin/pint     # the only way to auto-fix style
 - Quality gates: PHPStan level 8 over `src/` (vendor/tests excluded), Laravel
   Pint (`per` preset), PHPUnit strict (`.dist`), `composer validate --strict`.
   CI runs validate, Pint and PHPStan on PHP 8.3 and unit tests on 8.3/8.4/8.5,
-  branch `master`; smoke only via manual `workflow_dispatch`.
+  branch `master`; smoke only via manual `workflow_dispatch`. CI skips every job for commits/PRs starting `docs` or
+  `chore`, and for messages containing `[skip ci]` / `[skip-ci]`.
 
 ## Layout
 
@@ -93,8 +94,8 @@ holds the user guides.
 ## Tests
 
 - Unit tests never touch the network. `TestClientFactory::create()` takes a
-  `FakeHttpClient` (built from `callable(RequestInterface): ResponseInterface`)
-  plus an optional cache and returns a configured `Client`.
+  request handler (plus optional `ClientConfig` and cache) and returns
+  `[Client, FakeHttpClient]`, like the sibling SDKs.
 - `FakeHttpClient` records `lastRequest` and `lastTimeout`; assert method, path,
   query, body and headers. Every new endpoint needs such a test covering request
   and response mapping.

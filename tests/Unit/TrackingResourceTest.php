@@ -6,7 +6,6 @@ namespace Daika7ana\Dpd\Tests\Unit;
 
 use Daika7ana\Dpd\DTOs\Common\Addressing\ShipmentParcelRef;
 use Daika7ana\Dpd\Enums\Locations\OfficeType;
-use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +16,7 @@ final class TrackingResourceTest extends TestCase
     public function testTrackBatchedSplitsRequestsAndMergesTypedResults(): void
     {
         $payloadSizes = [];
-        $httpClient = new FakeHttpClient(static function (RequestInterface $request) use (&$payloadSizes): Response {
+        [$client, $httpClient] = TestClientFactory::create(static function (RequestInterface $request) use (&$payloadSizes): Response {
             $payload = \Daika7ana\Dpd\Support\JsonHelper::decode((string) $request->getBody());
             $payloadSizes[] = count($payload['parcels'] ?? []);
             $responseParcels = [];
@@ -66,7 +65,6 @@ final class TrackingResourceTest extends TestCase
                 'parcels' => $responseParcels,
             ], JSON_THROW_ON_ERROR));
         });
-        $client = TestClientFactory::create($httpClient);
 
         $references = [];
         for ($index = 1; $index <= 12; $index++) {
@@ -90,13 +88,12 @@ final class TrackingResourceTest extends TestCase
 
     public function testBulkTrackingFilesExposeNextProcessedFileId(): void
     {
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'files' => [
                 ['id' => 7, 'url' => 'https://bulk.example/7.json'],
                 ['id' => 8, 'url' => 'https://bulk.example/8.json'],
             ],
         ], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
 
         $response = $client->tracking()->bulkDataFiles(5);
 
@@ -107,8 +104,7 @@ final class TrackingResourceTest extends TestCase
 
     public function testTrackRejectsMoreThanTenParcelsWithoutCallingDpd(): void
     {
-        $httpClient = new FakeHttpClient(static fn() => new Response(200));
-        $client = TestClientFactory::create($httpClient);
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200));
         $references = [];
 
         for ($index = 1; $index <= 11; $index++) {
@@ -126,9 +122,9 @@ final class TrackingResourceTest extends TestCase
 
     public function testTrackTreatsMissingParcelsAsEmpty(): void
     {
-        $client = TestClientFactory::create(new FakeHttpClient(
+        [$client] = TestClientFactory::create(
             static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'),
-        ));
+        );
 
         $response = $client->tracking()->track([new ShipmentParcelRef('PARCEL-1')]);
 
@@ -137,9 +133,9 @@ final class TrackingResourceTest extends TestCase
 
     public function testTrackRejectsNonArrayParcels(): void
     {
-        $client = TestClientFactory::create(new FakeHttpClient(
+        [$client] = TestClientFactory::create(
             static fn() => new Response(200, ['Content-Type' => 'application/json'], '{"parcels":"invalid"}'),
-        ));
+        );
 
         $this->expectException(\Daika7ana\Dpd\Exceptions\UnexpectedStatusException::class);
 
@@ -148,7 +144,7 @@ final class TrackingResourceTest extends TestCase
 
     public function testTrackBatchedRejectsOutOfRangeBatchSize(): void
     {
-        $client = TestClientFactory::create(new FakeHttpClient(static fn() => new Response(200)));
+        [$client] = TestClientFactory::create(static fn() => new Response(200));
 
         $this->expectException(\InvalidArgumentException::class);
 

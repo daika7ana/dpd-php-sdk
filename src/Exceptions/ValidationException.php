@@ -10,7 +10,11 @@ use Throwable;
 
 class ValidationException extends DpdException
 {
+    /**
+     * @param array<string, string[]> $errors
+     */
     public function __construct(
+        public readonly array $errors = [],
         string $message = '',
         int $code = 0,
         ?Throwable $previous = null,
@@ -18,6 +22,6 @@ class ValidationException extends DpdException
         public readonly ?int $retryAfter = null,
         public readonly ?DpdError $error = null,
     ) {
-        parent::__construct($message, $response?->getStatusCode() ?? $code, $previous);
+        parent::__construct($message ?: 'Validation failed', $response?->getStatusCode() ?? $code, $previous);
     }
 }

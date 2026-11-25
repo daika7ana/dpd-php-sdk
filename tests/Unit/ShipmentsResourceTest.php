@@ -35,7 +35,6 @@ use Daika7ana\Dpd\Enums\Shipments\CodProcessingType;
 use Daika7ana\Dpd\Enums\Shipments\SearchInReference;
 use Daika7ana\Dpd\Enums\Shipments\SecondaryShipmentType;
 use Daika7ana\Dpd\Support\JsonHelper;
-use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use DateTimeImmutable;
 use GuzzleHttp\Psr7\Response;
@@ -46,7 +45,7 @@ final class ShipmentsResourceTest extends TestCase
 {
     public function testCreateUsesTypedPayloadAndMapsCreateResponse(): void
     {
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'id' => 'SHIP123',
             'pickupDate' => '2026-04-27',
             'deliveryDeadline' => '2026-04-28T12:00:00+03:00',
@@ -68,7 +67,6 @@ final class ShipmentsResourceTest extends TestCase
                 'currencyExchangeRate' => 1.0,
             ],
         ], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
 
         $response = $client->shipments()->create($this->makeCreateRequest());
         $payload = JsonHelper::decode((string) $httpClient->lastRequest?->getBody());
@@ -85,47 +83,41 @@ final class ShipmentsResourceTest extends TestCase
 
     public function testCoreLifecycleEndpointsUseExpectedPaths(): void
     {
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'id' => 'SHIP123',
             'parcels' => [['seqNo' => 1, 'id' => 'PARCEL123']],
         ], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
 
         $client->shipments()->finalizePendingShipment(new FinalizePendingShipmentRequest('SHIP123'));
         $this->assertSame('/v1/shipment/finalize', $httpClient->lastRequest?->getUri()->getPath());
 
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
         $client->shipments()->cancel(new CancelShipmentRequest('SHIP123', 'Cancelled by test'));
         $this->assertSame('POST', $httpClient->lastRequest?->getMethod());
         $this->assertSame('/v1/shipment/cancel', $httpClient->lastRequest?->getUri()->getPath());
 
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
         $client->shipments()->cancelWithDelete(new CancelShipmentRequest('SHIP123', 'Cancelled by test'));
         $this->assertSame('DELETE', $httpClient->lastRequest?->getMethod());
         $this->assertSame('/v1/shipment', $httpClient->lastRequest?->getUri()->getPath());
 
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'parcel' => ['seqNo' => 2, 'id' => 'PARCEL124'],
         ], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
         $client->shipments()->addParcel(new AddParcelRequest('SHIP123', new ShipmentParcel(seqNo: 2, weight: 1.2)));
         $this->assertSame('/v1/shipment/add_parcel', $httpClient->lastRequest?->getUri()->getPath());
 
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'id' => 'SHIP123',
             'parcels' => [['seqNo' => 1, 'id' => 'PARCEL123']],
         ], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
         $client->shipments()->update(new UpdateShipmentRequest('SHIP123', $this->makeCreateRequest()));
         $this->assertSame('/v1/shipment/update', $httpClient->lastRequest?->getUri()->getPath());
 
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'id' => 'SHIP123',
             'parcels' => [['seqNo' => 1, 'id' => 'PARCEL123']],
         ], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
         $client->shipments()->updateProperties(new UpdateShipmentPropertiesRequest('SHIP123', ['ref1' => 'UPDATED-REF']));
         $this->assertSame('/v1/shipment/update/properties', $httpClient->lastRequest?->getUri()->getPath());
     }
@@ -153,7 +145,7 @@ final class ShipmentsResourceTest extends TestCase
 
     public function testShipmentInfoMapsTypedShipmentRecords(): void
     {
-        $httpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$client, $httpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'shipments' => [
                 [
                     'id' => 'SHIP123',
@@ -187,7 +179,6 @@ final class ShipmentsResourceTest extends TestCase
                 ],
             ],
         ], JSON_THROW_ON_ERROR)));
-        $client = TestClientFactory::create($httpClient);
 
         $response = $client->shipments()->info(new ShipmentInformationRequest(['SHIP123']));
         $shipment = $response->shipments->first();
@@ -203,21 +194,19 @@ final class ShipmentsResourceTest extends TestCase
 
     public function testSearchAndBarcodeInformationMapTypedResponses(): void
     {
-        $searchHttpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$searchClient, $searchHttpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'barcodes' => ['PARCEL123', 'PARCEL124'],
         ], JSON_THROW_ON_ERROR)));
-        $searchClient = TestClientFactory::create($searchHttpClient);
 
         $searchResponse = $searchClient->shipments()->findParcelsByReference(new FindParcelsByReferenceRequest('ORDER-100', SearchInReference::Ref1OrRef2));
         $this->assertSame('/v1/shipment/search', $searchHttpClient->lastRequest?->getUri()->getPath());
         $this->assertSame('PARCEL123', $searchResponse->barcodes->first());
 
-        $barcodeHttpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$barcodeClient, $barcodeHttpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'labelInfo' => ['parcelId' => 'PARCEL123', 'fullBarcode' => '123456789012345678', 'exportPriority' => 1],
             'primaryShipment' => ['id' => 'SHIP123', 'type' => 'RETURN_SHIPMENT'],
             'primaryParcelId' => 'PARCEL123',
         ], JSON_THROW_ON_ERROR)));
-        $barcodeClient = TestClientFactory::create($barcodeHttpClient);
 
         $barcodeResponse = $barcodeClient->shipments()->barcodeInformation(ShipmentParcelRef::fromArray(['id' => 'PARCEL123']));
         $this->assertSame('/v1/shipment/barcode-information', $barcodeHttpClient->lastRequest?->getUri()->getPath());
@@ -227,7 +216,7 @@ final class ShipmentsResourceTest extends TestCase
 
     public function testSecondaryAndHandoverEndpointsUseTypedPayloads(): void
     {
-        $secondaryHttpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
+        [$secondaryClient, $secondaryHttpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'shipments' => [
                 [
                     'id' => 'SEC123',
@@ -238,7 +227,6 @@ final class ShipmentsResourceTest extends TestCase
                 ],
             ],
         ], JSON_THROW_ON_ERROR)));
-        $secondaryClient = TestClientFactory::create($secondaryHttpClient);
 
         $secondaryResponse = $secondaryClient->shipments()->secondaryShipments(new SecondaryShipmentsRequest('SHIP123', [SecondaryShipmentType::ReturnShipment]));
         $secondaryPayload = JsonHelper::decode((string) $secondaryHttpClient->lastRequest?->getBody());
@@ -246,8 +234,7 @@ final class ShipmentsResourceTest extends TestCase
         $this->assertSame(['RETURN_SHIPMENT'], $secondaryPayload['types']);
         $this->assertSame('SEC123', $secondaryResponse->shipments->first()?->id);
 
-        $handoverHttpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
-        $handoverClient = TestClientFactory::create($handoverHttpClient);
+        [$handoverClient, $handoverHttpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
         $handoverClient->shipments()->handoverToCourier(new HandoverToCourierRequest([
             new ParcelHandover(ShipmentParcelRef::fromArray(['id' => 'PARCEL123']), new DateTimeImmutable('2026-04-27T09:00:00+03:00')),
         ]));
@@ -256,8 +243,7 @@ final class ShipmentsResourceTest extends TestCase
         $this->assertSame('PARCEL123', $handoverPayload['parcels'][0]['id']);
         $this->assertSame('2026-04-27T09:00:00+0300', $handoverPayload['parcels'][0]['dateTime']);
 
-        $midwayHttpClient = new FakeHttpClient(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
-        $midwayClient = TestClientFactory::create($midwayHttpClient);
+        [$midwayClient, $midwayHttpClient] = TestClientFactory::create(static fn() => new Response(200, ['Content-Type' => 'application/json'], json_encode([], JSON_THROW_ON_ERROR)));
         $midwayClient->shipments()->handoverToMidwayCarrier(new HandoverToMidwayCarrierRequest([
             new MidwayCarrierParcelHandover('PARCEL123', 642, new DateTimeImmutable('2026-04-27T10:00:00+03:00'), 'Bucuresti'),
         ]));

@@ -12,6 +12,8 @@ The SDK maps transport failures and DPD API failures into a small exception hier
 
 `AuthenticationException`, `ValidationException` and `UnexpectedStatusException` expose the raw PSR-7 response as `$exception->response`, the numeric `Retry-After` header in seconds as `$exception->retryAfter` (`null` when absent or non-numeric; HTTP dates are not parsed), and the structured `DpdError` as `$exception->error`. `UnexpectedStatusException` additionally exposes metadata-only `$exception->responseDetails`; it never contains the raw body or payload.
 
+`ValidationException::$errors` exists for cross-SDK parity; DPD reports one `DpdError`, so it is always `[]` — read `$exception->error` instead.
+
 `$exception->getCode()` is the HTTP status when a response is present, otherwise `0`. Carrier error codes are never placed on `getCode()`; read them from `$exception->error?->code`. The `context` and `component` fields of `DpdError` are carrier-defined and may be absent or differ per endpoint.
 
 ## Status Mapping

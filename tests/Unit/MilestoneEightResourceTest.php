@@ -21,7 +21,6 @@ use Daika7ana\Dpd\Enums\Payments\PayoutPaymentType;
 use Daika7ana\Dpd\Enums\Services\AdditionalServiceAllowance;
 use Daika7ana\Dpd\Enums\Services\CargoType;
 use Daika7ana\Dpd\Support\JsonHelper;
-use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use DateTimeImmutable;
 use GuzzleHttp\Psr7\Response;
@@ -33,7 +32,7 @@ final class MilestoneEightResourceTest extends TestCase
     public function testDestinationServicesAndCalculationsMapTypedDtos(): void
     {
         $payloads = [];
-        $httpClient = new FakeHttpClient(static function (RequestInterface $request) use (&$payloads): Response {
+        [$client, $httpClient] = TestClientFactory::create(static function (RequestInterface $request) use (&$payloads): Response {
             $payloads[$request->getUri()->getPath()] = JsonHelper::decode((string) $request->getBody());
 
             return match ($request->getUri()->getPath()) {
@@ -78,7 +77,6 @@ final class MilestoneEightResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $client = TestClientFactory::create($httpClient);
         $recipient = new CalculationRecipient(addressLocation: AddressLocation::fromArray(['countryId' => 642, 'siteId' => 68134, 'siteName' => 'Bucuresti', 'postCode' => '010101']));
 
         $services = $client->services()->destination(new DestinationServicesRequest(
@@ -104,7 +102,7 @@ final class MilestoneEightResourceTest extends TestCase
     public function testClientsAndPaymentsMapTypedResponses(): void
     {
         $payloads = [];
-        $httpClient = new FakeHttpClient(static function (RequestInterface $request) use (&$payloads): Response {
+        [$client, $httpClient] = TestClientFactory::create(static function (RequestInterface $request) use (&$payloads): Response {
             $payloads[$request->getUri()->getPath()] = JsonHelper::decode((string) $request->getBody());
 
             return match ($request->getUri()->getPath()) {
@@ -169,7 +167,6 @@ final class MilestoneEightResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $client = TestClientFactory::create($httpClient);
 
         $contactId = $client->clients()->createContact(new CreateContactRequest(
             externalContactId: 'external-1',
@@ -214,9 +211,9 @@ final class MilestoneEightResourceTest extends TestCase
 
     public function testClientEndpointsRejectResponsesWithoutClientId(): void
     {
-        $client = TestClientFactory::create(new FakeHttpClient(
+        [$client] = TestClientFactory::create(
             static fn() => new Response(200, ['Content-Type' => 'application/json'], '{}'),
-        ));
+        );
 
         $this->expectException(\Daika7ana\Dpd\Exceptions\UnexpectedStatusException::class);
 

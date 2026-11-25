@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-11-25
+
+### Changed
+
+- **Breaking:** `ValidationException` gains an optional `$errors` parameter as its first constructor argument and defaults the message to `Validation failed`.
+- `TestClientFactory::create()` takes a request handler, an optional `ClientConfig` and an optional `?ReferenceDataCacheInterface $cache = null` third parameter, and returns `[Client, FakeHttpClient]` like the sibling SDKs; test support only, not shipped to consumers.
+- `GuzzleHttpClient` is no longer `final`.
+- `TransportException` defaults its message to `Transport error`.
+
 ## [3.3.0] - 2026-11-23
 
 ### Added

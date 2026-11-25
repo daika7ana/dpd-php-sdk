@@ -10,7 +10,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
-final class GuzzleHttpClient implements HttpClientInterface
+class GuzzleHttpClient implements HttpClientInterface
 {
     public const DEFAULT_TIMEOUT = 30.0;
 

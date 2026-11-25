@@ -22,7 +22,6 @@ use Daika7ana\Dpd\DTOs\Validation\Requests\ValidatePostCodeRequest;
 use Daika7ana\Dpd\Enums\Payments\Payer;
 use Daika7ana\Dpd\Enums\Pickup\PickupScope;
 use Daika7ana\Dpd\Support\JsonHelper;
-use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use DateTimeImmutable;
 use GuzzleHttp\Psr7\Response;
@@ -34,7 +33,7 @@ final class PickupAndValidationResourceTest extends TestCase
     public function testPickupEndpointsMapOrdersAndCutoffs(): void
     {
         $payloads = [];
-        $httpClient = new FakeHttpClient(static function (RequestInterface $request) use (&$payloads): Response {
+        [$client, $httpClient] = TestClientFactory::create(static function (RequestInterface $request) use (&$payloads): Response {
             $payloads[$request->getUri()->getPath()] = JsonHelper::decode((string) $request->getBody());
 
             return match ($request->getUri()->getPath()) {
@@ -54,7 +53,6 @@ final class PickupAndValidationResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $client = TestClientFactory::create($httpClient);
 
         $orders = $client->pickup()->order(new PickupRequest(
             visitEndTime: '11:30',
@@ -84,7 +82,7 @@ final class PickupAndValidationResourceTest extends TestCase
     {
         $paths = [];
         $payloads = [];
-        $httpClient = new FakeHttpClient(static function (RequestInterface $request) use (&$paths, &$payloads): Response {
+        [$client, $httpClient] = TestClientFactory::create(static function (RequestInterface $request) use (&$paths, &$payloads): Response {
             $paths[] = $request->getUri()->getPath();
             $payloads[$request->getUri()->getPath()] = JsonHelper::decode((string) $request->getBody());
 
@@ -92,7 +90,6 @@ final class PickupAndValidationResourceTest extends TestCase
                 'valid' => true,
             ], JSON_THROW_ON_ERROR));
         });
-        $client = TestClientFactory::create($httpClient);
         $address = new LocalShipmentAddress(
             location: AddressLocation::fromArray(['countryId' => 642, 'siteId' => 68134, 'siteName' => 'Bucuresti', 'postCode' => '010101']),
             streetType: 'Str.',
@@ -114,12 +111,12 @@ final class PickupAndValidationResourceTest extends TestCase
 
     public function testInvalidValidationResponseReturnsValidFalseWithError(): void
     {
-        $client = TestClientFactory::create(new FakeHttpClient(
+        [$client] = TestClientFactory::create(
             static fn(): Response => new Response(200, ['Content-Type' => 'application/json'], json_encode([
                 'valid' => false,
                 'error' => ['code' => 120, 'message' => 'Street not found.', 'id' => 'err-120'],
             ], JSON_THROW_ON_ERROR)),
-        ));
+        );
 
         $result = $client->validation()->postCode(new ValidatePostCodeRequest('010101', 642));
 

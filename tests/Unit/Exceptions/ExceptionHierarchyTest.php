@@ -28,7 +28,7 @@ final class ExceptionHierarchyTest extends TestCase
 
     public function testValidationExceptionExtendsDpdException(): void
     {
-        $exception = new ValidationException('test');
+        $exception = new ValidationException(message: 'test');
 
         $this->assertInstanceOf(DpdException::class, $exception);
     }

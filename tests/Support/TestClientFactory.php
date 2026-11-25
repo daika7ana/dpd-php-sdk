@@ -8,18 +8,25 @@ use Daika7ana\Dpd\Cache\ReferenceDataCacheInterface;
 use Daika7ana\Dpd\Client;
 use Daika7ana\Dpd\Config\ClientConfig;
 use GuzzleHttp\Psr7\HttpFactory;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 final class TestClientFactory
 {
-    public static function create(FakeHttpClient $httpClient, ?ReferenceDataCacheInterface $cache = null): Client
+    /**
+     * @param callable(RequestInterface): ResponseInterface $handler
+     * @return array{Client, FakeHttpClient}
+     */
+    public static function create(callable $handler, ?ClientConfig $config = null, ?ReferenceDataCacheInterface $cache = null): array
     {
+        $httpClient = new FakeHttpClient($handler);
         $factory = new HttpFactory();
 
-        return Client::create(
+        $client = Client::create(
             httpClient: $httpClient,
             requestFactory: $factory,
             streamFactory: $factory,
-            config: new ClientConfig(
+            config: $config ?? new ClientConfig(
                 username: 'demo-user',
                 password: 'demo-password',
                 language: 'EN',
@@ -27,5 +34,7 @@ final class TestClientFactory
             ),
             referenceDataCache: $cache,
         );
+
+        return [$client, $httpClient];
     }
 }

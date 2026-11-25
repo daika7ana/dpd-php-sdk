@@ -25,7 +25,6 @@ use Daika7ana\Dpd\Enums\Locations\OfficeType;
 use Daika7ana\Dpd\Enums\Services\CargoType;
 use Daika7ana\Dpd\Exceptions\UnexpectedStatusException;
 use Daika7ana\Dpd\Support\JsonHelper;
-use Daika7ana\Dpd\Tests\Support\FakeHttpClient;
 use Daika7ana\Dpd\Tests\Support\TestClientFactory;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
@@ -212,7 +211,7 @@ final class LocationsResourceTest extends TestCase
 
     public function testSearchEndpointsUseExpectedPayloadsAndMapCollections(): void
     {
-        $httpClient = new FakeHttpClient(static function (RequestInterface $request): Response {
+        [$client, $httpClient] = TestClientFactory::create(static function (RequestInterface $request): Response {
             return match ($request->getUri()->getPath()) {
                 '/v1/location/country' => self::jsonResponse(['countries' => [['id' => 642, 'name' => 'Romania', 'nameEn' => 'Romania', 'isoAlpha2' => 'RO', 'isoAlpha3' => 'ROU', 'postCodeFormats' => ['NNNNNN'], 'requireState' => false, 'addressType' => 1, 'siteNomen' => 1]]]),
                 '/v1/location/state' => self::jsonResponse(['states' => [['id' => 'IF', 'name' => 'Ilfov', 'nameEn' => 'Ilfov', 'countryId' => 642]]]),
@@ -225,7 +224,6 @@ final class LocationsResourceTest extends TestCase
                 default => new Response(404, ['Content-Type' => 'application/json'], '{}'),
             };
         });
-        $client = TestClientFactory::create($httpClient);
 
         $countries = $client->locations()->findCountries(new CountrySearchRequest(name: 'Rom'));
         $countryPayload = JsonHelper::decode((string) $httpClient->lastRequest?->getBody());
@@ -331,7 +329,7 @@ final class LocationsResourceTest extends TestCase
 
     public function testNearestOfficesHydratesDistanceCoordinatesAndTypedFilters(): void
     {
-        $httpClient = new FakeHttpClient(static function (RequestInterface $request): Response {
+        [$client, $httpClient] = TestClientFactory::create(static function (RequestInterface $request): Response {
             return self::jsonResponse([
                 'x' => 26.1025,
                 'y' => 44.4268,
@@ -350,7 +348,6 @@ final class LocationsResourceTest extends TestCase
                 ]],
             ]);
         });
-        $client = TestClientFactory::create($httpClient);
 
         $response = $client->locations()->findNearestOffices(new NearestOfficesRequest(
             address: new LocalShipmentAddress(
@@ -443,7 +440,9 @@ final class LocationsResourceTest extends TestCase
 
     private function makeClient(callable $handler, ?ArrayReferenceDataCache $cache = null): Client
     {
-        return TestClientFactory::create(new FakeHttpClient($handler), $cache);
+        [$client] = TestClientFactory::create($handler, cache: $cache);
+
+        return $client;
     }
 
     /**
